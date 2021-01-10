@@ -56,8 +56,20 @@ body.dark .tool.selected {
 #rectangle_mode {
     background-image: url("../img/rectangle.png");
 }
+#rectangle_mode.outline {
+    background-image: url("../img/rectangle_outline.png");
+}
+#rectangle_mode.filled {
+    background-image: url("../img/rectangle_filled.png");
+}
 #ellipse_mode {
     background-image: url("../img/ellipse.png");
+}
+#ellipse_mode.outline {
+    background-image: url("../img/ellipse_outline.png");
+}
+#ellipse_mode.filled {
+    background-image: url("../img/ellipse_filled.png");
 }
 #fill_mode {
     background-image: url("../img/fill.png");
@@ -379,6 +391,23 @@ body.dark #statusbar > div > div {
 }
 #guide.guide_row {
     border-bottom: rgba(100, 100, 100) 1px dashed;
+}
+#drawing_grid.hidden {
+    display: none;
+}
+#drawing_grid .column {
+    border-right: rgba(100, 100, 100) 1px dashed;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+}
+#drawing_grid .row {
+    border-bottom: rgba(100, 100, 100) 1px dashed;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
 }
 #zoom {
     font-size: 30px;

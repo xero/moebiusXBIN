@@ -3,14 +3,17 @@ const {on, send, send_sync, msg_box, save_box} = require("./senders");
 const doc = require("./document/doc");
 const {tools} = require("./document/ui/ui");
 const {HourlySaver} = require("./hourly_saver");
+const {remove_ice_colors} = require("./libtextmode/libtextmode");
 let hourly_saver, backup_folder;
 require("./document/ui/canvas");
 require("./document/tools/select");
 require("./document/tools/brush");
 require("./document/tools/shifter");
 require("./document/tools/line");
-require("./document/tools/rectangle");
-require("./document/tools/ellipse");
+require("./document/tools/rectangle_filled");
+require("./document/tools/rectangle_outline");
+require("./document/tools/ellipse_filled");
+require("./document/tools/ellipse_outline");
 require("./document/tools/fill");
 require("./document/tools/sample");
 
@@ -37,10 +40,32 @@ doc.on("ready", () => {
     tools.start(tools.modes.SELECT);
 });
 
-function save(destroy_when_done = false) {
+async function process_save(method = 'save', destroy_when_done = false, ignore_controlcharacters = false) {
+    var ctrl = false;
+    doc.data.forEach((block, index) => {
+        if (block.code == 9 || block.code == 10 || block.code == 13 || block.code == 26) ctrl = true;
+    });
+    if (ctrl && ignore_controlcharacters == false) {
+        send("show_controlcharacters", {method, destroy_when_done});
+    } else {
+        switch (method) {
+            case "save_as":
+                save_as(destroy_when_done);
+                break;
+            case "save_without_sauce":
+                save_without_sauce();
+                break;
+            default:
+                save(destroy_when_done);
+                break;
+        }
+    }
+}
+
+function save(destroy_when_done = false, save_without_sauce = false) {
     if (doc.file) {
         doc.edited = false;
-        doc.save();
+        doc.save(save_without_sauce);
         if (destroy_when_done) send("destroy");
     } else {
         save_as(destroy_when_done);
@@ -53,6 +78,15 @@ function save_as(destroy_when_done = false) {
         doc.file = file;
         doc.edited = false;
         save(destroy_when_done);
+    }
+}
+
+function save_without_sauce() {
+    const file = save_box(doc.file, "ans", {filters: [{name: "ANSI Art", extensions: ["ans", "asc", "diz", "nfo", "txt"]}, {name: "XBin", extensions: ["xb"]}, {name: "Binary Text", extensions: ["bin"]}]});
+    if (file) {
+        doc.file = file;
+        doc.edited = false;
+        save(false, true);
     }
 }
 
@@ -108,20 +142,23 @@ on("new_document", (event, opts) => doc.new_document(opts));
 on("revert_to_last_save", (event, opts) => doc.open(doc.file));
 on("show_file_in_folder", (event, opts) => electron.shell.showItemInFolder(doc.file));
 on("duplicate", (event, opts) => send("new_document", {columns: doc.columns, rows: doc.rows, data: doc.data, palette: doc.palette, font_name: doc.font_name, use_9px_font: doc.use_9px_font, ice_colors: doc.ice_colors}));
+on("process_save", (event, {method, destroy_when_done, ignore_controlcharacters}) => process_save(method, destroy_when_done, ignore_controlcharacters));
 on("save", (event, opts) => {
     if (doc.connection) {
-        save_as();
+        process_save('save_as');
     } else {
-        save();
+        process_save('save');
     }
 });
-on("save_as", (event, opts) => save_as());
+on("save_as", (event, opts) => process_save('save_as'));
+on("save_without_sauce", (event, opts) => process_save('save_without_sauce'));
 on("share_online", (event, opts) => share_online());
 on("open_file", (event, file) => doc.open(file));
 on("check_before_closing", (event) => check_before_closing());
 on("export_as_utf8", (event) => export_as_utf8());
 on("export_as_png", (event) => export_as_png());
 on("export_as_apng", (event) => export_as_apng());
+on("remove_ice_colors", (event) => send("new_document", remove_ice_colors(doc)));
 on("connect_to_server", (event, {server, pass}) => doc.connect_to_server(server, pass));
 on("backup_folder", (event, folder) => backup_folder = folder);
 on("use_backup", (event, value) => use_backup(value));

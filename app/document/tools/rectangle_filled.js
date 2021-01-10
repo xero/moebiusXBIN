@@ -11,7 +11,7 @@ let overlay;
 let clear = false;
 
 tools.on("start", (mode) => {
-    enabled = (mode == tools.modes.RECTANGLE);
+    enabled = (mode == tools.modes.RECTANGLE_FILLED);
     if (enabled) toolbar.show_brush();
 });
 
@@ -53,7 +53,7 @@ mouse.on("to", (x, y, half_y, button) => {
         return;
     }
     const {sx, sy, dx, dy} = reorientate(mouse.start.x, mouse.start.y, x, y);
-    if (clear || toolbar.mode == toolbar.modes.CLEAR_BLOCK) {
+    if (clear) {
         rectangle_overlay(sx, sy, dx, dy, 0);
     } else {
         rectangle_overlay(sx, sy, dx, dy, (button == mouse.buttons.LEFT) ? fg : bg);
@@ -68,33 +68,33 @@ mouse.on("up", (x, y, half_y, button) => {
     if (toolbar.mode == toolbar.modes.HALF_BLOCK) {
         const {sx, sy, dx, dy} = reorientate(mouse.start.x, mouse.start.half_y, x, half_y);
         if (clear) {
-            for (let y = sy; y <= dy; y++) brushes.half_block_line(sx, y, dx, y, 0);
+            for (let y = sy; y <= dy; y++) brushes.single_half_block_line(sx, y, dx, y, 0);
         } else {
             const col = (button == mouse.buttons.LEFT) ? fg : bg;
-            for (let y = sy; y <= dy; y++) brushes.half_block_line(sx, y, dx, y, col);
+            for (let y = sy; y <= dy; y++) brushes.single_half_block_line(sx, y, dx, y, col);
         }
         return;
     }
     const {sx, sy, dx, dy} = reorientate(mouse.start.x, mouse.start.y, x, y);
-    if (clear || toolbar.mode == toolbar.modes.CLEAR_BLOCK) {
-        for (let y = sy; y <= dy; y++) brushes.clear_block_line(sx, y, dx, y);
+    if (clear) {
+        for (let y = sy; y <= dy; y++) brushes.single_clear_block_line(sx, y, dx, y);
     } else {
         switch (toolbar.mode) {
-            case toolbar.modes.FULL_BLOCK:
-                for (let y = sy; y <= dy; y++) brushes.full_block_line(sx, y, dx, y, (button == mouse.buttons.LEFT) ? fg : bg);
+            case toolbar.modes.CUSTOM_BLOCK:
+                for (let y = sy; y <= dy; y++) brushes.single_custom_block_line(sx, y, dx, y, fg, bg);
                 break;
             case toolbar.modes.SHADING_BLOCK:
                 const reduce = (button != mouse.buttons.LEFT);
-                for (let y = sy; y <= dy; y++) brushes.shading_block_line(sx, y, dx, y, fg, bg, reduce);
+                for (let y = sy; y <= dy; y++) brushes.single_shading_block_line(sx, y, dx, y, fg, bg, reduce);
                 break;
             case toolbar.modes.REPLACE_COLOR:
-                for (let y = sy; y <= dy; y++) brushes.replace_color_line(sx, y, dx, y, fg, bg);
+                for (let y = sy; y <= dy; y++) brushes.single_replace_color_line(sx, y, dx, y, fg, bg);
                 break;
             case toolbar.modes.BLINK:
-                for (let y = sy; y <= dy; y++) brushes.blink_line(sx, y, dx, y, button != mouse.buttons.LEFT);
+                for (let y = sy; y <= dy; y++) brushes.single_blink_line(sx, y, dx, y, button != mouse.buttons.LEFT);
                 break;
             case toolbar.modes.COLORIZE:
-                for (let y = sy; y <= dy; y++) brushes.colorize_line(sx, y, dx, y, toolbar.colorize_fg ? fg : undefined, toolbar.colorize_bg ? bg : undefined);
+                for (let y = sy; y <= dy; y++) brushes.single_colorize_line(sx, y, dx, y, toolbar.colorize_fg ? fg : undefined, toolbar.colorize_bg ? bg : undefined);
                 break;
         }
     }
@@ -117,4 +117,9 @@ keyboard.on("escape", () => {
 on("select_attribute", (event) => {
     if (!enabled) return;
     palette.select_attribute();
+});
+
+keyboard.on("f_key", (num) => {
+    if (!enabled) return;
+    toolbar.change_custom_brush(num);
 });
