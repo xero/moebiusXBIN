@@ -567,7 +567,7 @@ function new_document({columns = 80, rows = 100, title = "", author = "", group 
 }
 
 function clone_document(doc) {
-    return new_document({columns: doc.columns, rows: doc.rows, title: doc.title, author: doc.author, group: doc.group, date: doc.data, palette: doc.palette, font_name: doc.font_name, ice_colors: doc.ice_colors, use_9px_font: doc.use_9px_font, comments: doc.comments, data: doc.data});
+    return new_document({columns: doc.columns, rows: doc.rows, title: doc.title, author: doc.author, group: doc.group, date: doc.data, palette: doc.palette, font_bytes: doc.font_bytes, font_name: doc.font_name, ice_colors: doc.ice_colors, use_9px_font: doc.use_9px_font, comments: doc.comments, data: doc.data});
 }
 
 function get_data_url(canvases) {
@@ -604,7 +604,7 @@ function compress(doc) {
             }
         }
     }
-    return {columns: doc.columns, rows: doc.rows, title: doc.title, author: doc.author, group: doc.group, date: doc.date, palette: doc.palette, font_name: doc.font_name, ice_colors: doc.ice_colors, use_9px_font: doc.use_9px_font, comments: doc.comments, compressed_data, c64_background: doc.c64_background};
+    return {columns: doc.columns, rows: doc.rows, title: doc.title, author: doc.author, group: doc.group, date: doc.date, palette: doc.palette, font_bytes: doc.font_bytes, font_name: doc.font_name, ice_colors: doc.ice_colors, use_9px_font: doc.use_9px_font, comments: doc.comments, compressed_data, c64_background: doc.c64_background};
 }
 
 function uncompress(doc) {
@@ -644,6 +644,16 @@ function get_blocks(doc, sx, sy, dx, dy, opts = {}) {
 
 function get_all_blocks(doc) {
     return get_blocks(doc, 0, 0, doc.columns - 1, doc.rows -1);
+}
+
+function export_font(doc, render, file) {
+    let bytes;
+    if (doc.font != null) {
+        bytes = doc.font.bitmask;
+    } else {
+        bytes = doc.font_bytes;
+    }
+    fs.writeFileSync(file, Buffer.from(bytes));
 }
 
 function export_as_png(doc, render, file) {
@@ -695,4 +705,4 @@ function remove_ice_colors(doc) {
     return new_doc;
 }
 
-module.exports = {Font, read_bytes, read_file, write_file, animate, render, render_split, render_at, render_insert_column, render_delete_column, render_insert_row, render_delete_row, new_document, clone_document, resize_canvas, cp437_to_unicode, cp437_to_unicode_bytes, unicode_to_cp437, render_blocks, merge_blocks, flip_code_x, flip_x, flip_y, rotate, insert_column, insert_row, delete_column, delete_row, scroll_canvas_up, scroll_canvas_down, scroll_canvas_left, scroll_canvas_right, render_scroll_canvas_up, render_scroll_canvas_down, render_scroll_canvas_left, render_scroll_canvas_right, get_data_url, ega, c64, convert_ega_to_style, compress, uncompress, get_blocks, get_all_blocks, export_as_png, export_as_apng, has_ansi_palette, has_c64_palette, encode_as_bin, encode_as_xbin, encode_as_ansi, remove_ice_colors};
+module.exports = {Font, read_bytes, read_file, export_font, write_file, animate, render, render_split, render_at, render_insert_column, render_delete_column, render_insert_row, render_delete_row, new_document, clone_document, resize_canvas, cp437_to_unicode, cp437_to_unicode_bytes, unicode_to_cp437, render_blocks, merge_blocks, flip_code_x, flip_x, flip_y, rotate, insert_column, insert_row, delete_column, delete_row, scroll_canvas_up, scroll_canvas_down, scroll_canvas_left, scroll_canvas_right, render_scroll_canvas_up, render_scroll_canvas_down, render_scroll_canvas_left, render_scroll_canvas_right, get_data_url, ega, c64, convert_ega_to_style, compress, uncompress, get_blocks, get_all_blocks, export_as_png, export_as_apng, has_ansi_palette, has_c64_palette, encode_as_bin, encode_as_xbin, encode_as_ansi, remove_ice_colors};

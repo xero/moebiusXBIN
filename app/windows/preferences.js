@@ -6,7 +6,11 @@ function $(name) {
     return document.getElementById(name);
 }
 
+<<<<<<< HEAD
 function prefs({nick, group, use_numpad, use_shift, chunked_undo, use_flashing_cursor, use_pixel_aliasing, hide_scrollbars, unsaved_changes, scroll_margin, new_document_rows, retention, smallscale_guide, debug, ignore_hdpi, discord, use_backup, backup_folder}) {
+=======
+function prefs({nick, group, use_numpad, use_shift, chunked_undo, use_flashing_cursor, use_pixel_aliasing, hide_scrollbars, unsaved_changes, scroll_margin, new_document_rows, retention, smallscale_guide, debug, ignore_hdpi, use_backup, backup_folder}) {
+>>>>>>> moebius-customfont/master
     $("nick").value = nick;
     $("group").value = group;
     $("use_numpad").checked = use_numpad;
@@ -22,7 +26,10 @@ function prefs({nick, group, use_numpad, use_shift, chunked_undo, use_flashing_c
     $("smallscale_guide").checked = smallscale_guide;
     $("debug").checked = debug;
     $("ignore_hdpi").checked = ignore_hdpi;
+<<<<<<< HEAD
     $("discord").checked = discord;
+=======
+>>>>>>> moebius-customfont/master
     $("use_backup").checked = use_backup;
     backup_folder_value = backup_folder;
     $("backup_folder").innerText = (backup_folder == "") ? "No Backup Folder Set" : backup_folder;
@@ -88,10 +95,13 @@ function ignore_hdpi() {
     update("ignore_hdpi", $("ignore_hdpi").checked);
 }
 
+<<<<<<< HEAD
 function discord() {
     send("discord", {value: $("discord").checked});
 }
 
+=======
+>>>>>>> moebius-customfont/master
 function debug() {
     update("debug", $("debug").checked);
 }
@@ -159,7 +169,10 @@ document.addEventListener("DOMContentLoaded", (event) => {
     $("smallscale_guide").addEventListener("change", (event) => smallscale_guide(), true);
     $("debug").addEventListener("change", (event) => debug(), true);
     $("ignore_hdpi").addEventListener("change", (event) => ignore_hdpi(), true);
+<<<<<<< HEAD
     $("discord").addEventListener("change", (event) => discord(), true);
+=======
+>>>>>>> moebius-customfont/master
     $("use_backup").addEventListener("change", (event) => use_backup(), true);
     $("backup_choose").addEventListener("click", (event) => {
         choose_folder();

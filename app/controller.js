@@ -90,8 +90,18 @@ function save_without_sauce() {
     }
 }
 
+function export_font() {
+    const file = save_box(doc.file, `F${doc.font_height}`, {filters: [{name: "VGA font", extensions: [`F${doc.font_height}`]}]});
+    if (file) doc.export_font(file);
+}
+
 async function share_online() {
     const url = await doc.share_online();
+    if (url) electron.shell.openExternal(url);
+}
+
+async function share_online_xbin() {
+    const url = await doc.share_online_xbin();
     if (url) electron.shell.openExternal(url);
 }
 
@@ -141,7 +151,7 @@ function use_backup(value) {
 on("new_document", (event, opts) => doc.new_document(opts));
 on("revert_to_last_save", (event, opts) => doc.open(doc.file));
 on("show_file_in_folder", (event, opts) => electron.shell.showItemInFolder(doc.file));
-on("duplicate", (event, opts) => send("new_document", {columns: doc.columns, rows: doc.rows, data: doc.data, palette: doc.palette, font_name: doc.font_name, use_9px_font: doc.use_9px_font, ice_colors: doc.ice_colors}));
+on("duplicate", (event, opts) => send("new_document", {columns: doc.columns, rows: doc.rows, data: doc.data, palette: doc.palette, font_bytes: doc.font_bytes, font_name: doc.font_name, use_9px_font: doc.use_9px_font, ice_colors: doc.ice_colors}));
 on("process_save", (event, {method, destroy_when_done, ignore_controlcharacters}) => process_save(method, destroy_when_done, ignore_controlcharacters));
 on("save", (event, opts) => {
     if (doc.connection) {
@@ -155,6 +165,8 @@ on("save_without_sauce", (event, opts) => process_save('save_without_sauce'));
 on("share_online", (event, opts) => share_online());
 on("open_file", (event, file) => doc.open(file));
 on("check_before_closing", (event) => check_before_closing());
+on("share_online_xbin", (event, opts) => share_online_xbin());
+on("export_font", (event, opts) => export_font());
 on("export_as_utf8", (event) => export_as_utf8());
 on("export_as_png", (event) => export_as_png());
 on("export_as_apng", (event) => export_as_apng());

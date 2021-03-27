@@ -8,7 +8,7 @@ const font_list = {
     "Amiga": {"Amiga Topaz 1": 16, "Amiga Topaz 1+": 16, "Amiga Topaz 2": 16, "Amiga Topaz 2+": 16, "Amiga P0T-NOoDLE": 16, "Amiga MicroKnight": 16, "Amiga MicroKnight+": 16, "Amiga mOsOul": 16},
     "Arabic": {"IBM VGA50 864": 8, "IBM EGA 864": 14, "IBM VGA 864": 16},
     "Baltic Rim": {"IBM VGA50 775": 8, "IBM EGA 775": 14, "IBM VGA 775": 16},
-    // "C64": {"C64 PETSCII unshifted": 8, "C64 PETSCII shifted": 8},
+    "C64": {"C64 PETSCII unshifted": 8, "C64 PETSCII shifted": 8},
     "Cyrillic": {"IBM VGA50 866": 8, "IBM EGA 866": 14, "IBM VGA 866": 16, "IBM VGA50 855": 8, "IBM EGA 855": 14, "IBM VGA 855": 16},
     "French Canadian": {"IBM VGA50 863": 8, "IBM EGA 863": 14, "IBM VGA 863": 16, "IBM VGA25G 863": 19},
     "Greek": {"IBM VGA50 737": 8, "IBM EGA 737": 14, "IBM VGA 737": 16, "IBM VGA50 869": 8, "IBM EGA 869": 14, "IBM VGA 869": 16, "IBM VGA50 851": 8, "IBM EGA 851": 14, "IBM VGA 851": 16, "IBM VGA25G 851": 19},
@@ -127,7 +127,8 @@ function file_menu_template(win) {
             {label: "Save Without Sauce Info\u2026", id: "save_without_sauce", click(item) {win.send("save_without_sauce");}},
             {type: "separator"},
             {label: "Share Online", id: "share_online", click(item) {win.send("share_online");}},
-            {type: "separator"},
+            {label: "Share Online (XBIN)", id: "share_online_xbin", click(item) {win.send("share_online_xbin");}},
+            { type: "separator" },
             {label: "Export As PNG\u2026", id: "export_as_png", accelerator: "CmdorCtrl+Shift+E", click(item) {win.send("export_as_png");}},
             {label: "Export As Animated PNG\u2026", id: "export_as_apng", accelerator: "CmdorCtrl+Shift+A", click(item) {win.send("export_as_apng");}},
             {type: "separator"},
@@ -236,7 +237,8 @@ function view_menu_template(win) {
             {label: "Show Status Bar", id: "show_status_bar", accelerator: "CmdorCtrl+/", click(item) {win.send("show_statusbar", item.checked);}, type: "checkbox", checked: true},
             {label: "Show Tool Bar", id: "show_tool_bar", accelerator: "CmdorCtrl+T", click(item) {win.send("show_toolbar", item.checked);}, type: "checkbox", checked: true},
             {label: "Show Preview", id: "show_preview", accelerator: "CmdorCtrl+Alt+P", click(item) {win.send("show_preview", item.checked);}, type: "checkbox", checked: true},
-            {type: "separator"},
+            {label: "Show Character List", id: "show_charlist", accelerator: "CmdorCtrl+Alt+L", click(item) {win.send("show_charlist", item.checked);}, type: "checkbox", checked: true},
+            { type: "separator" },
             {label: "Previous Character Set", id: "previous_character_set", accelerator: "Ctrl+,", click(item) {win.send("previous_character_set");}, enabled: true},
             {label: "Next Character Set", id: "next_character_set", accelerator: "Ctrl+.", click(item) {win.send("next_character_set");}, enabled: true},
             {label: "Default Character Set", id: "default_character_set", accelerator: "Ctrl+/", click(item) {win.send("default_character_set");}, enabled: true},
@@ -252,13 +254,16 @@ function view_menu_template(win) {
             {label: "Zoom Out", id: "zoom_out", accelerator: "CmdorCtrl+-", click(item) {win.send("zoom_out");}},
             {type: "separator"},
             {label: "Change Font", submenu: font_menu_items(win)},
-            {type: "separator"},
+            {label: "Load Custom Font\u2026", id: "loadcustomfont", click(item) {win.send("change_font", "Custom");}},
+            {label: "Reset to default font\u2026", id: "resetxbinfont", click(item) {win.send("change_font", "Default");}},
+            {label: "Export font\u2026", id: "export_font", click(item) {win.send("export_font");}},
+            { type: "separator" },
             {label: "Guides", submenu: [
                 {label: "Smallscale (80×25)", id: "smallscale_guide", click(item) {win.send("toggle_smallscale_guide", item.checked);}, type: "checkbox", checked: false},
                 {label: "Square (80×40)", id: "square_guide", click(item) {win.send("toggle_square_guide", item.checked);}, type: "checkbox", checked: false},
                 {label: "Instagram (80×50)", id: "instagram_guide", click(item) {win.send("toggle_instagram_guide", item.checked);}, type: "checkbox", checked: false},
                 {label: "File ID (44×22)", id: "file_id_guide", click(item) {win.send("toggle_file_id_guide", item.checked);}, type: "checkbox", checked: false},
-                // {label: "PETSCII (40×25)", id: "petscii_guide", click(item) {win.send("toggle_petscii_guide", item.checked);}, type: "checkbox", checked: false},
+                {label: "PETSCII (40×25)", id: "petscii_guide", click(item) {win.send("toggle_petscii_guide", item.checked);}, type: "checkbox", checked: false},
                 {label: "Drawing grid", submenu: [
                     {label: "4x2", id: "drawinggrid_4x2", click(item) {win.send("toggle_drawinggrid", item.checked, 4 );}, type: "checkbox", checked: false},
                     {label: "6x3", id: "drawinggrid_6x3", click(item) {win.send("toggle_drawinggrid", item.checked, 6 );}, type: "checkbox", checked: false},
@@ -625,7 +630,7 @@ electron.ipcMain.on("uncheck_all_guides", (event, {id}) => {
     uncheck(id, "square_guide");
     uncheck(id, "instagram_guide");
     uncheck(id, "file_id_guide");
-    // uncheck(id, "petscii_guide");
+    uncheck(id, "petscii_guide");
     uncheck(id, "drawinggrid_4x2");
     uncheck(id, "drawinggrid_6x3");
     uncheck(id, "drawinggrid_8x4");

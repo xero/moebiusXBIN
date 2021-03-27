@@ -89,7 +89,17 @@ function encode_as_xbin(doc, save_without_sauce) {
         }
         header = header.concat(palette_bytes);
     }
-    if (doc.font_bytes) {
+    //if using custom font loaded to program
+    if (doc.font != null) {
+        header[10] += 1 << 1;
+        const font_bytes = [];
+        for (const value of doc.font.bitmask) {
+            font_bytes.push(value);
+        }
+        header = header.concat(font_bytes);
+    }
+    //else use font from xbin file
+    else {
         header[10] += 1 << 1;
         const font_bytes = [];
         for (const value of doc.font_bytes) {

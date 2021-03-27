@@ -1,7 +1,11 @@
 const libtextmode = require("../libtextmode/libtextmode");
 const events = require("events");
 let doc, render;
+<<<<<<< HEAD
 const actions =  {CONNECTED: 0, REFUSED: 1, JOIN: 2, LEAVE: 3, CURSOR: 4, SELECTION: 5, RESIZE_SELECTION: 6, OPERATION: 7, HIDE_CURSOR: 8, DRAW: 9, CHAT: 10, STATUS: 11, SAUCE: 12, ICE_COLORS: 13, USE_9PX_FONT: 14, CHANGE_FONT: 15, SET_CANVAS_SIZE: 16, PASTE_AS_SELECTION: 17, ROTATE: 18, FLIP_X: 19, FLIP_Y: 20, SET_BG: 21};
+=======
+const actions =  {CONNECTED: 0, REFUSED: 1, JOIN: 2, LEAVE: 3, CURSOR: 4, SELECTION: 5, RESIZE_SELECTION: 6, OPERATION: 7, HIDE_CURSOR: 8, DRAW: 9, CHAT: 10, STATUS: 11, SAUCE: 12, ICE_COLORS: 13, USE_9PX_FONT: 14, CHANGE_FONT: 15, SET_CANVAS_SIZE: 16, PASTE_AS_SELECTION: 17, ROTATE: 18, FLIP_X: 19, FLIP_Y: 20};
+>>>>>>> moebius-customfont/master
 let connection;
 
 class Connection extends events.EventEmitter {
@@ -34,7 +38,11 @@ class Connection extends events.EventEmitter {
             switch (type) {
                 case actions.DRAW:
                     doc.data[data.y * doc.columns + data.x] = Object.assign(data.block);
+<<<<<<< HEAD
                     libtextmode.render_at(render, data.x, data.y, data.block, doc.c64_background);
+=======
+                    libtextmode.render_at(render, data.x, data.y, data.block);
+>>>>>>> moebius-customfont/master
                     break;
                 case actions.SAUCE:
                     this.emit("sauce", data.title, data.author, data.group, data.comments);
@@ -51,9 +59,12 @@ class Connection extends events.EventEmitter {
                 case actions.SET_CANVAS_SIZE:
                     this.emit("set_canvas_size", data.columns, data.rows);
                     break;
+<<<<<<< HEAD
                 case actions.SET_BG:
                     this.emit("set_bg", data.value);
                     break;
+=======
+>>>>>>> moebius-customfont/master
             }
         }
     }
@@ -116,6 +127,7 @@ class TextModeDoc extends events.EventEmitter {
         });
         connection.on("change_font", (font_name) => {
             doc.font_name = font_name;
+<<<<<<< HEAD
             if (font_name == "C64 PETSCII unshifted" || font_name == "C64 PETSCII shifted") {
                 if (libtextmode.has_ansi_palette(doc.palette)) {
                     doc.palette = libtextmode.c64;
@@ -127,6 +139,8 @@ class TextModeDoc extends events.EventEmitter {
                     this.emit("update_swatches");
                 }
             }
+=======
+>>>>>>> moebius-customfont/master
             this.start_rendering().then(() => this.emit("change_font", doc.font_name));
         });
         connection.on("sauce", (title, author, group, comments) => {
@@ -137,6 +151,7 @@ class TextModeDoc extends events.EventEmitter {
             this.emit("sauce", title, author, group, comments);
         });
         connection.on("set_canvas_size", (columns, rows) => {
+<<<<<<< HEAD
             libtextmode.resize_canvas(doc, columns, rows);
             this.start_rendering();
         });
@@ -144,6 +159,12 @@ class TextModeDoc extends events.EventEmitter {
             doc.c64_background = value;
             this.start_rendering();
         });
+=======
+            this.undo_history.reset_undos();
+            libtextmode.resize_canvas(doc, columns, rows);
+            this.start_rendering();
+        });
+>>>>>>> moebius-customfont/master
     }
 
     get connection() {return connection;}

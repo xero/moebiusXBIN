@@ -1,5 +1,8 @@
 const electron = require("electron");
+<<<<<<< HEAD
 let saved_servers = [];
+=======
+>>>>>>> moebius-customfont/master
 
 function send(channel, opts) {
     electron.ipcRenderer.send(channel, {id: electron.remote.getCurrentWindow().id, ...opts});
@@ -9,8 +12,11 @@ function ok() {
     const server = document.getElementById("server").value;
     const pass = document.getElementById("pass").value;
     if (server) {
+<<<<<<< HEAD
         update("server", server);
         update("pass", pass);
+=======
+>>>>>>> moebius-customfont/master
         send("connect_to_server", {server, pass});
         electron.remote.getCurrentWindow().close();
     }
@@ -34,6 +40,7 @@ function click(event) {
     event.preventDefault();
 }
 
+<<<<<<< HEAD
 function update(key, value) {
     electron.ipcRenderer.send("update_prefs", {key, value});
 }
@@ -59,10 +66,13 @@ function remove(event) {
     event.preventDefault();
 }
 
+=======
+>>>>>>> moebius-customfont/master
 document.addEventListener("DOMContentLoaded", (event) => {
     document.getElementById("server").addEventListener("keydown", override_submit, true);
     document.getElementById("pass").addEventListener("keydown", override_submit, true);
     document.getElementById("connect").addEventListener("click", click, true);
+<<<<<<< HEAD
     document.getElementById("save").addEventListener("click", save, true);
     document.getElementById("remove").addEventListener("click", remove, true);
 }, true);
@@ -92,3 +102,9 @@ electron.ipcRenderer.on("saved_servers", (event, {server, pass, saved_servers: i
     saved_servers = incoming_saved_servers;
     list_servers();
 });
+=======
+}, true);
+
+electron.ipcRenderer.on("ok", (event) => ok());
+electron.ipcRenderer.on("cancel", (event) => cancel());
+>>>>>>> moebius-customfont/master
