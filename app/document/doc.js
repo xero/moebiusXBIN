@@ -718,7 +718,7 @@ class TextModeDoc extends events.EventEmitter {
     get comments() {return doc.comments;}
     get palette() {return doc.palette;}
     get font_name() { return doc.font_name; }
-    get font_bytes() {return font.font_bytes;}
+    get font_bytes() {return doc.font_bytes;}
     get ice_colors() {return doc.ice_colors;}
     get use_9px_font() {return doc.use_9px_font;}
     get data() {return doc.data;}
