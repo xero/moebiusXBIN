@@ -4,7 +4,7 @@
 Moebius XBIN is an XBIN Editor for MacOS, Linux and Windows. This is a forked version of [Moebius](https://github.com/blocktronics/moebius). This fork includes support for custom colors and character sets.
 
 ## Download packages
-Packaged binaries are available through Github [Releases](https://github.com/blocktronics/moebius/releases)
+Packaged binaries are available through Github [Releases](https://github.com/hlotvonen/moebius/releases)
 
 ## Acknowledgements
 * Uses modified Google's Material Icons. https://material.io/icons/
