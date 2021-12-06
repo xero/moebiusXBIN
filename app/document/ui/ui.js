@@ -1,10 +1,11 @@
 const electron = require("electron");
-const {on, send, send_sync, open_box} = require("../../senders");
+const { on, send, send_sync, open_box } = require("../../senders");
 const doc = require("../doc");
 const palette = require("../palette");
 const keyboard = require("../input/keyboard");
 const events = require("events");
 let interval, guide_columns, guide_rows;
+let canvas_zoom_toggled = false;
 
 function $(name) {
     return document.getElementById(name);
@@ -19,7 +20,7 @@ function set_var_px(name, value) {
 }
 
 function open_reference_image() {
-    const files = open_box({filters: [{name: "Images", extensions: ["png", "jpg", "jpeg"]}]});
+    const files = open_box({ filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg"] }] });
     if (files) {
         $("reference_image").style.backgroundImage = `url(${electron.nativeImage.createFromPath(files[0]).toDataURL()})`;
         $("reference_image").style.opacity = 0.4;
@@ -162,7 +163,7 @@ function rescale_drawinggrid(columns) {
         div.classList.add("row");
         $("drawing_grid").appendChild(div);
         r += doc.render.font.height * rows;
-    }    
+    }
 }
 
 on("toggle_smallscale_guide", (event, visible) => toggle_smallscale_guide(visible));
@@ -210,7 +211,7 @@ function show_statusbar(visible) {
 }
 
 function show_preview(visible) {
-    set_var("preview-width", visible ? "300px" : "1px");
+    set_var("preview-width", visible ? "1px" : "300px");
 }
 
 function use_pixel_aliasing(value) {
@@ -223,7 +224,7 @@ function hide_scrollbars(value) {
 }
 
 function show_charlist(visible) {
-  set_var("charlist-width", visible ? "256px" : "1px");
+    set_var("charlist-width", visible ? "256px" : "1px");
 }
 
 function current_zoom_factor() {
@@ -238,7 +239,7 @@ function set_zoom(factor) {
     document.body.removeChild(zoom_element);
     document.body.appendChild(zoom_element);
     zoom_element.classList.add("fade");
-    send("update_menu_checkboxes", {actual_size: (electron.remote.getCurrentWebContents().zoomFactor == 1)});
+    send("update_menu_checkboxes", { actual_size: (electron.remote.getCurrentWebContents().zoomFactor == 1) });
 }
 
 function zoom_in() {
@@ -246,11 +247,23 @@ function zoom_in() {
 }
 
 function zoom_out() {
-    set_zoom(Math.max(current_zoom_factor() - 0.1, 0.4));
+    if (current_zoom_factor() >= 1.001) {
+        set_zoom(Math.max(current_zoom_factor() - 0.1, 0.4));
+    }
 }
 
 function actual_size() {
     set_zoom(1.0);
+}
+
+function canvas_zoom_toggle() {
+    canvas_zoom_toggled = !canvas_zoom_toggled;
+    if (canvas_zoom_toggled) {
+        $("canvas_container").classList.add("canvas_zoom");
+    } else {
+        $("canvas_container").classList.remove("canvas_zoom");
+    }
+    send("update_menu_checkboxes", { canvas_zoom_toggle: canvas_zoom_toggled });
 }
 
 function ice_colors(value) {
@@ -277,29 +290,29 @@ function ice_colors(value) {
         $("blink_on_container").style.display = "none";
         set_text("ice_colors", "On");
     }
-    send("update_menu_checkboxes", {ice_colors: value});
+    send("update_menu_checkboxes", { ice_colors: value });
 }
 
 function use_9px_font(value) {
     set_text("use_9px_font", value ? "On" : "Off");
-    send("update_menu_checkboxes", {use_9px_font: value});
+    send("update_menu_checkboxes", { use_9px_font: value });
 }
 
 function change_font(font_name) {
     set_text("font_name", font_name);
-    send("update_menu_checkboxes", {font_name});
+    send("update_menu_checkboxes", { font_name });
 }
 
 function insert_mode(value) {
     set_text("insert_mode", value ? "Ins" : "");
     keyboard.overwrite_mode = false;
-    send("update_menu_checkboxes", {insert_mode: value, overwrite_mode: false});
+    send("update_menu_checkboxes", { insert_mode: value, overwrite_mode: false });
 }
 
 function overwrite_mode(value) {
     set_text("insert_mode", value ? "Over" : "");
     keyboard.insert_mode = false;
-    send("update_menu_checkboxes", {overwrite_mode: value, insert_mode: false});
+    send("update_menu_checkboxes", { overwrite_mode: value, insert_mode: false });
 }
 
 doc.on("new_document", () => {
@@ -320,6 +333,7 @@ on("show_charlist", (event, visible) => show_charlist(visible));
 on("use_pixel_aliasing", (event, value) => use_pixel_aliasing(value));
 on("hide_scrollbars", (event, value) => hide_scrollbars(value));
 on("zoom_in", (event) => zoom_in());
+on("canvas_zoom_toggle", (event) => canvas_zoom_toggle());
 on("zoom_out", (event) => zoom_out());
 on("actual_size", (event) => actual_size());
 
@@ -330,7 +344,7 @@ document.addEventListener("DOMContentLoaded", (event) => {
 
 class Tools extends events.EventEmitter {
     get_tool_div(mode) {
-        switch(mode) {
+        switch (mode) {
             case this.modes.SELECT: return $("select_mode");
             case this.modes.BRUSH: return $("brush_mode");
             case this.modes.SHIFTER: return $("shifter_mode");
@@ -390,7 +404,7 @@ class Tools extends events.EventEmitter {
 
     constructor() {
         super();
-        this.modes = {SELECT: 0, BRUSH: 1, SHIFTER: 2, LINE: 3, RECTANGLE_OUTLINE: 4, RECTANGLE_FILLED: 5, ELLIPSE_OUTLINE: 6, ELLIPSE_FILLED: 7, FILL: 8, SAMPLE: 9};
+        this.modes = { SELECT: 0, BRUSH: 1, SHIFTER: 2, LINE: 3, RECTANGLE_OUTLINE: 4, RECTANGLE_FILLED: 5, ELLIPSE_OUTLINE: 6, ELLIPSE_FILLED: 7, FILL: 8, SAMPLE: 9 };
         on("change_to_select_mode", (event) => this.start(this.modes.SELECT));
         on("change_to_brush_mode", (event) => this.start(this.modes.BRUSH));
         on("change_to_shifter_mode", (event) => this.start(this.modes.SHIFTER));
@@ -432,52 +446,80 @@ class Toolbar extends events.EventEmitter {
     }
 
     draw_charlist() {
-      const font = doc.font;
-      const { fg, bg } = palette;
-      const canvas = document.createElement("canvas");
-      const charlist = document.getElementById("charlist");
-      canvas.width = font.width * 16;
-      canvas.height = font.height * 16;
-      canvas.style.width = `${canvas.width * 2}px`;
-      canvas.style.height = `${canvas.height * 2}px`;
-      if (charlist.contains(charlist.getElementsByTagName('canvas')[0])) {
-        charlist.removeChild(charlist.getElementsByTagName('canvas')[0]);
-      }
-      charlist.appendChild(canvas);
-      canvas.addEventListener("mousedown", (event) => {
-        const rect = event.target.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
-        const char_index = Math.floor(y / font.height / 2) * 16 + Math.floor(x / 8 / 2);
-        const selector = document.getElementById("charlist_selector");
-        selector.style.top = `${Math.floor(char_index / 16) * font.height * 2}px`;
-        selector.style.left = `${(char_index % 16) * 8 * 2}px`;
-        selector.style.height = `${font.height * 2}px`;
-        const fkey_index = this.fkey_index;
-  
-        for (let i = 0; i < 12; i++) {
-          const num = i;
-          const code = char_index + i;
-          this.draw_fkey(`f${i + 1}`, char_index + i);
-          send("set_fkey", {num, fkey_index, code});
+        const font = doc.font;
+        const { fg, bg } = palette;
+        const canvas = document.createElement("canvas");
+        const charlist = document.getElementById("charlist");
+        canvas.width = font.width * 16;
+        canvas.height = font.height * 16;
+        canvas.style.width = `${canvas.width * 2}px`;
+        canvas.style.height = `${canvas.height * 2}px`;
+        if (charlist.contains(charlist.getElementsByTagName('canvas')[0])) {
+            charlist.removeChild(charlist.getElementsByTagName('canvas')[0]);
         }
-      }, true);
-      const ctx = canvas.getContext("2d");
-      for (let y = 0, code = 0; y < 16; y++) {
-          for (let x = 0; x < 16; x++, code++) {
-              font.draw(ctx, { code, fg, bg }, x * 8, y * font.height);
-          }
-      }
+        charlist.appendChild(canvas);
+        canvas.addEventListener("mousedown", (event) => {
+            const rect = event.target.getBoundingClientRect();
+            this.charlist_x = event.clientX - rect.left;
+            this.charlist_y = event.clientY - rect.top;
+            this.char_index = Math.floor(this.charlist_y / font.height / 2) * 16 + Math.floor(this.charlist_x / 8 / 2);
+            this.draw_charlist_cursor(this.char_index);
+        }, true);
+        const ctx = canvas.getContext("2d");
+        for (let y = 0, code = 0; y < 16; y++) {
+            for (let x = 0; x < 16; x++, code++) {
+                font.draw(ctx, { code, fg, bg }, x * 8, y * font.height);
+            }
+        }
     }
-  
+
+    draw_charlist_cursor(index) {
+        const font = doc.font;
+        let selector = document.getElementById("charlist_selector");
+        selector.style.top = `${Math.floor(this.char_index / 16) * font.height * 2}px`;
+        selector.style.left = `${(this.char_index % 16) * 8 * 2}px`;
+        selector.style.height = `${font.height * 2}px`;
+        this.draw_fkeys();
+    }
+
     redraw_charlist() {
-      if (!doc.render) return;
-      this.draw_charlist();
-    }  
-  
+        if (!doc.render) return;
+        this.draw_charlist();
+    }
+
+    move_charlist(direction) {
+
+        if (direction == "up") {
+            if (this.char_index > 15) { this.char_index -= 16; }
+        }
+        else if (direction == "right") {
+            if ((this.char_index + 1) % 16 != 0 && this.char_index < 256) { this.char_index += 1; }
+        }
+        else if (direction == "down") {
+            if (this.char_index < 240) { this.char_index += 16; }
+        }
+        else if (direction == "left") {
+            if (this.char_index % 16 != 0 && this.char_index > 0) { this.char_index -= 1; }
+        }
+        else {
+            this.char_index = 0;
+        }
+        this.draw_charlist_cursor(this.char_index)
+    }
+
+    draw_fkeys() {
+        for (let i = 0; i < 12; i++) {
+            let num = i;
+            const fkey_index = this.fkey_index;
+            let code = this.char_index + i;
+            this.draw_fkey(`f${i + 1}`, this.char_index + i);
+            send("set_fkey", { num, fkey_index, code });
+        }
+    }
+
     draw_fkey(name, code) {
         const font = doc.font;
-        const {fg, bg} = palette;
+        const { fg, bg } = palette;
         const canvas = $(name);
         canvas.width = font.width;
         canvas.height = font.height;
@@ -485,7 +527,7 @@ class Toolbar extends events.EventEmitter {
         canvas.style.height = `${font.height * 2}px`;
         canvas.style.margin = `${(48 - font.height * 2 - 2) / 2}px`;
         const ctx = canvas.getContext("2d");
-        font.draw(ctx, {code, fg, bg}, 0, 0);
+        font.draw(ctx, { code, fg, bg }, 0, 0);
     }
 
     redraw_fkeys() {
@@ -496,12 +538,12 @@ class Toolbar extends events.EventEmitter {
 
     draw_custom_block() {
         const font = doc.font;
-        const {fg, bg} = palette;
+        const { fg, bg } = palette;
         const canvas = $("custom_block_canvas");
         canvas.width = font.width;
         canvas.height = font.height;
         const ctx = canvas.getContext("2d");
-        font.draw(ctx, {code: this.custom_block_index, fg, bg}, 0, 0);
+        font.draw(ctx, { code: this.custom_block_index, fg, bg }, 0, 0);
     }
 
     change_fkeys(num) {
@@ -569,12 +611,12 @@ class Toolbar extends events.EventEmitter {
     }
 
     fkey_pref_clicker(num) {
-        return (event) => send_sync("fkey_prefs", {num, fkey_index: this.fkey_index, current: this.fkeys[this.fkey_index][num], bitmask: doc.font.bitmask, use_9px_font: doc.font.use_9px_font, font_height: doc.font.height});
+        return (event) => send_sync("fkey_prefs", { num, fkey_index: this.fkey_index, current: this.fkeys[this.fkey_index][num], bitmask: doc.font.bitmask, use_9px_font: doc.font.use_9px_font, font_height: doc.font.height });
     }
 
     change_mode(new_mode) {
         if (this.mode == new_mode && this.mode == this.modes.CUSTOM_BLOCK) {
-            send_sync("fkey_prefs", {num: -1, fkey_index: 0, current: this.custom_block_index, bitmask: doc.font.bitmask, use_9px_font: doc.font.use_9px_font, font_height: doc.font.height});
+            send_sync("fkey_prefs", { num: -1, fkey_index: 0, current: this.custom_block_index, bitmask: doc.font.bitmask, use_9px_font: doc.font.use_9px_font, font_height: doc.font.height });
             return;
         }
         this.mode = new_mode;
@@ -627,6 +669,9 @@ class Toolbar extends events.EventEmitter {
     constructor() {
         super();
         this.fkey_index = 0;
+        this.charlist_x = 0;
+        this.charlist_y = 0;
+        this.char_index = 0;
         on("fkeys", (event, value) => {
             this.fkeys = value;
             this.redraw_fkeys();
@@ -646,26 +691,27 @@ class Toolbar extends events.EventEmitter {
         on("decrease_brush_size", () => this.decrease_brush_size());
         on("reset_brush_size", () => this.reset_brush_size());
         keyboard.on("change_fkeys", (num) => this.change_fkeys(num));
-        this.modes = {HALF_BLOCK: 0, CUSTOM_BLOCK: 1, SHADING_BLOCK: 2, REPLACE_COLOR: 3, BLINK: 4, COLORIZE: 5};
+        this.modes = { HALF_BLOCK: 0, CUSTOM_BLOCK: 1, SHADING_BLOCK: 2, REPLACE_COLOR: 3, BLINK: 4, COLORIZE: 5 };
         this.colorize_fg = true;
         this.colorize_bg = false;
         this.brush_size = 1;
         this.custom_block_index = 176;
         on("show_toolbar", (event, visible) => set_var_px("toolbar-height", visible ? 48 : 0));
         palette.on("set_fg", () => {
-          this.redraw_fkeys();
-          this.draw_custom_block();
-          this.redraw_charlist();
+            this.redraw_fkeys();
+            this.draw_custom_block();
+            this.redraw_charlist();
         });
         palette.on("set_bg", () => {
-          this.redraw_fkeys();
-          this.draw_custom_block();
-          this.redraw_charlist();
+            this.redraw_fkeys();
+            this.draw_custom_block();
+            this.redraw_charlist();
         });
         doc.on("render", () => {
             this.redraw_fkeys();
             this.draw_custom_block();
             this.redraw_charlist();
+            this.draw_charlist_cursor(0);
             const font = doc.font;
             const sample_block = document.getElementById("sample_block");
             sample_block.width = font.width;
@@ -698,7 +744,11 @@ class Toolbar extends events.EventEmitter {
             });
             this.change_mode(this.modes.HALF_BLOCK);
         }, true);
+
+        keyboard.on("move_charlist", (direction) => this.move_charlist(direction));
+
+
     }
 }
 
-module.exports = {statusbar: new StatusBar(), tools: new Tools(), toolbar: new Toolbar(), zoom_in, zoom_out, actual_size};
+module.exports = { statusbar: new StatusBar(), tools: new Tools(), toolbar: new Toolbar(), zoom_in, zoom_out, actual_size, canvas_zoom_toggle };

@@ -1,8 +1,9 @@
 const events = require("events");
 const doc = require("../doc");
-const buttons = {NONE: 0, LEFT: 1, RIGHT: 2};
-const {toolbar, zoom_in, zoom_out, actual_size} = require("../ui/ui");
+const buttons = { NONE: 0, LEFT: 1, RIGHT: 2 };
+const { toolbar, zoom_in, zoom_out, actual_size } = require("../ui/ui");
 const palette = require("../palette");
+const { on } = require("../../senders");
 
 class MouseListener extends events.EventEmitter {
     set_dimensions(columns, rows, font) {
@@ -14,10 +15,20 @@ class MouseListener extends events.EventEmitter {
     get_xy(event) {
         const canvas_container = document.getElementById("canvas_container");
         const canvas_container_rect = canvas_container.getBoundingClientRect();
-        const x = Math.floor((event.clientX - canvas_container_rect.left) / this.font.width);
-        const y = Math.floor((event.clientY - canvas_container_rect.top) / this.font.height);
-        const half_y = Math.floor((event.clientY - canvas_container_rect.top) / (this.font.height / 2));
-        return {x, y, half_y};
+        const canvas_width = doc.columns * 8;
+        const canvas_height = doc.rows * doc.font_height;
+        let mouseX = event.clientX - canvas_container_rect.left;
+        let mouseY = event.clientY - canvas_container_rect.top;
+        let canvasX = mouseX * canvas_width / canvas_container.clientWidth;
+        let canvasY = mouseY * canvas_height / canvas_container.clientHeight;
+        const x = Math.floor(canvasX / (this.font.width * (this.canvas_zoom_toggled ? 2 : 1)));
+        const y = Math.floor(canvasY / (this.font.height * (this.canvas_zoom_toggled ? 2 : 1)));
+        const half_y = Math.floor(canvasY / (this.font.height / 2 * (this.canvas_zoom_toggled ? 2 : 1)));
+        return { x, y, half_y };
+    }
+
+    canvas_zoom_toggle() {
+        this.canvas_zoom_toggled = !this.canvas_zoom_toggled;
     }
 
     record_start() {
@@ -45,7 +56,7 @@ class MouseListener extends events.EventEmitter {
             actual_size();
             return;
         }
-        const {x, y, half_y} = this.get_xy(event);
+        const { x, y, half_y } = this.get_xy(event);
         const is_legal = (x >= 0 && x < doc.columns && y >= 0 && y < doc.rows);
         if (event.altKey) {
             if (!is_legal) return;
@@ -58,25 +69,25 @@ class MouseListener extends events.EventEmitter {
             return;
         }
         this.store(x, y, half_y);
-        this.start = {x, y, half_y};
+        this.start = { x, y, half_y };
         if (event.button == 2 || event.ctrlKey) {
             this.button = buttons.RIGHT;
         } else if (event.button == 0) {
             this.button = buttons.LEFT;
         }
         this.emit("down", x, y, half_y, is_legal, this.button, event.shiftKey);
-        this.last = {x, y, half_y};
+        this.last = { x, y, half_y };
     }
 
     same_as_last(x, y, half_y) {
         if (this.last.x == x && this.last.y == y && (toolbar.mode != toolbar.modes.HALF_BLOCK || this.last.half_y == half_y)) return true;
-        this.last = {x, y, half_y};
+        this.last = { x, y, half_y };
         return false;
     }
 
     mouse_move(event) {
         if (!this.font) return;
-        const {x, y, half_y} = this.get_xy(event);
+        const { x, y, half_y } = this.get_xy(event);
         const is_legal = (x >= 0 && x < doc.columns && y >= 0 && y < doc.rows);
         if (this.x == x && this.y == y && this.half_y == half_y) return;
         if (this.drawing) {
@@ -93,7 +104,7 @@ class MouseListener extends events.EventEmitter {
 
     mouse_up(event) {
         if (!this.font) return;
-        const {x, y, half_y} = this.get_xy(event);
+        const { x, y, half_y } = this.get_xy(event);
         if (this.drawing || this.started) {
             this.emit("up", x, y, half_y, this.button, this.start.x == x && this.start.y == y && this.start.half_y == half_y, event.shiftKey);
             this.end();
@@ -133,17 +144,19 @@ class MouseListener extends events.EventEmitter {
         super();
         this.buttons = buttons;
         this.button = buttons.NONE;
-        this.start = {x: 0, y: 0, half_y: 0};
+        this.start = { x: 0, y: 0, half_y: 0 };
         this.started = false;
         this.drawing = false;
         this.listening_to_wheel = true;
+        this.canvas_zoom_toggled = false;
+        on("canvas_zoom_toggle", (event) => this.canvas_zoom_toggle());
         doc.on("render", () => this.set_dimensions(doc.columns, doc.rows, doc.font));
         document.addEventListener("DOMContentLoaded", (event) => {
             document.getElementById("viewport").addEventListener("pointerdown", (event) => this.mouse_down(event), true);
             document.body.addEventListener("pointermove", (event) => this.mouse_move(event), true);
             document.body.addEventListener("pointerup", (event) => this.mouse_up(event), true);
             document.body.addEventListener("pointerout", (event) => this.mouse_out(event), true);
-            document.body.addEventListener("wheel", (event) => this.wheel(event), {passive: false});
+            document.body.addEventListener("wheel", (event) => this.wheel(event), { passive: false });
         });
     }
 }
