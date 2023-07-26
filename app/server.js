@@ -119,7 +119,6 @@ class Joint {
             this.log(`changed canvas: ${msg.data.columns}/${msg.data.rows}`, ip);
             break;
         case action.SET_BG:
-            // this.doc.c64_background = msg.data.value;
             // this.send_all_including_guests(ws, msg.type, msg.data);
             break;
         default:
@@ -183,10 +182,10 @@ class Joint {
     }
 }
 
-async function start_joint({path: server_path, file, pass = "", quiet = false} = {}) {
+async function start_joint({path: server_path, file, pass = "", quiet = false, server_port} = {}) {
     server_path = (server_path != undefined) ? server_path : path.parse(file).base;
     server_path = `/${server_path.toLowerCase()}`;
-    if (!server.address()) server.listen(8000);
+    if (!server.address()) server.listen(server_port);
     if (joints[server_path]) throw "Path already in use.";
     server_path = server_path.toLowerCase();
     joints[server_path] = new Joint({path: server_path, file, pass, quiet});

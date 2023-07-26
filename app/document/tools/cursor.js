@@ -1,33 +1,33 @@
-const modes = {EDITING: 0, SELECTION: 1, OPERATION: 2};
-const {on, send} = require("../../senders");
+const modes = { EDITING: 0, SELECTION: 1, OPERATION: 2 };
+const { on, send } = require("../../senders");
 const doc = require("../doc");
 const libtextmode = require("../../libtextmode/libtextmode");
 const palette = require("../palette");
 const keyboard = require("../input/keyboard");
-const {statusbar, toolbar} = require("../ui/ui");
+const { statusbar, toolbar } = require("../ui/ui");
 const clipboard = require("./clipboard");
 
 class Cursor {
     draw() {
         switch (this.mode) {
-        case modes.EDITING:
-            if (this.flashing) return;
-            const {font, render} = doc;
-            this.ctx.globalCompositeOperation = "source-over";
-            this.ctx.drawImage(render.ice_color_collection[Math.floor(this.y / render.maximum_rows)], this.x * font.width, (this.y % render.maximum_rows) * font.height, font.width, font.height, 0, 0, font.width, font.height);
-            this.ctx.globalCompositeOperation = "difference";
-            font.draw_cursor(this.ctx, 0, font.height - 2);
-            this.ctx.clearRect(0, 0, this.canvas.width, font.height - 2);
-            break;
-        case modes.SELECTION:
-            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            break;
-        case modes.OPERATION:
-            if (this.operation_blocks.underneath) {
-                const canvas = libtextmode.render_blocks(libtextmode.merge_blocks(this.operation_blocks, this.get_blocks_in_operation()), doc.font, doc.c64_background);
-                this.ctx.drawImage(canvas, 2, 2, canvas.width - 4, canvas.height - 4, 0, 0, canvas.width - 4, canvas.height - 4);
-            }
-            break;
+            case modes.EDITING:
+                if (this.flashing) return;
+                const { font, render } = doc;
+                this.ctx.globalCompositeOperation = "source-over";
+                this.ctx.drawImage(render.ice_color_collection[Math.floor(this.y / render.maximum_rows)], this.x * font.width, (this.y % render.maximum_rows) * font.height, font.width, font.height, 0, 0, font.width, font.height);
+                this.ctx.globalCompositeOperation = "difference";
+                font.draw_cursor(this.ctx, 0, font.height - 2);
+                this.ctx.clearRect(0, 0, this.canvas.width, font.height - 2);
+                break;
+            case modes.SELECTION:
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                break;
+            case modes.OPERATION:
+                if (this.operation_blocks.underneath) {
+                    const canvas = libtextmode.render_blocks(libtextmode.merge_blocks(this.operation_blocks, this.get_blocks_in_operation()), doc.font);
+                    this.ctx.drawImage(canvas, 2, 2, canvas.width - 4, canvas.height - 4, 0, 0, canvas.width - 4, canvas.height - 4);
+                }
+                break;
         }
     }
 
@@ -88,7 +88,7 @@ class Cursor {
 
     end_of_row() {
         if (this.mode == modes.OPERATION) {
-            const {sx, dx} = this.reorientate_selection();
+            const { sx, dx } = this.reorientate_selection();
             const right_justified_x = doc.columns - (dx - sx + 1);
             if (this.x == right_justified_x) {
                 this.move_to(doc.columns - 1, this.y);
@@ -134,7 +134,7 @@ class Cursor {
     reorientate_selection() {
         const [sx, dx] = (this.selection.dx < this.selection.sx) ? [this.selection.dx, this.selection.sx] : [this.selection.sx, this.selection.dx];
         const [sy, dy] = (this.selection.dy < this.selection.sy) ? [this.selection.dy, this.selection.sy] : [this.selection.sy, this.selection.dy];
-        return {sx, sy, dx, dy};
+        return { sx, sy, dx, dy };
     }
 
     move_to(x, y, scroll = true) {
@@ -151,7 +151,7 @@ class Cursor {
             case modes.SELECTION:
                 this.selection.dx = x;
                 this.selection.dy = y;
-                const {sx, sy, dx, dy} = this.reorientate_selection();
+                const { sx, sy, dx, dy } = this.reorientate_selection();
                 this.canvas.style.left = `${sx * this.width}px`;
                 this.canvas.style.top = `${sy * this.height}px`;
                 this.canvas.style.width = `${(dx - sx + 1) * this.width - 4}px`;
@@ -202,7 +202,7 @@ class Cursor {
     }
 
     start_selection_mode() {
-        this.selection = {sx: this.x, sy: this.y};
+        this.selection = { sx: this.x, sy: this.y };
         this.canvas.classList.add("selection");
         this.mode = modes.SELECTION;
         this.draw();
@@ -233,7 +233,7 @@ class Cursor {
         const font = doc.font;
         this.canvas.width = this.operation_blocks.columns * font.width - 4; this.canvas.height = this.operation_blocks.rows * font.height - 4;
         this.canvas.style.width = `${this.canvas.width}px`; this.canvas.style.height = `${this.canvas.height}px`;
-        const canvas = libtextmode.render_blocks(this.operation_blocks, doc.font, doc.c64_background);
+        const canvas = libtextmode.render_blocks(this.operation_blocks, doc.font);
         this.ctx.drawImage(canvas, 2, 2, canvas.width - 4, canvas.height - 4, 0, 0, canvas.width - 4, canvas.height - 4);
     }
 
@@ -250,21 +250,21 @@ class Cursor {
     }
 
     start_operation_mode(is_move_operation) {
-        const {sx, sy, dx, dy} = this.reorientate_selection();
-        this.set_operation_mode({...doc.get_blocks(sx, sy, dx, dy), is_move_operation});
+        const { sx, sy, dx, dy } = this.reorientate_selection();
+        this.set_operation_mode({ ...doc.get_blocks(sx, sy, dx, dy), is_move_operation });
         if (doc.connection) doc.connection.operation(sx, sy);
         if (is_move_operation) doc.erase(sx, sy, dx, dy);
         this.move_to(sx, sy);
     }
 
     erase() {
-        const {sx, sy, dx, dy} = this.reorientate_selection();
+        const { sx, sy, dx, dy } = this.reorientate_selection();
         doc.erase(sx, sy, dx, dy);
         this.start_editing_mode();
     }
 
     fill() {
-        const {sx, sy, dx, dy} = this.reorientate_selection();
+        const { sx, sy, dx, dy } = this.reorientate_selection();
         doc.fill(sx, sy, dx, dy, palette.fg);
         this.start_editing_mode();
     }
@@ -364,7 +364,7 @@ class Cursor {
         }
         const x = this.x;
         if (!keyboard.overwrite_mode) this.right();
-        doc.change_data(x, this.y, code, palette.fg, palette.bg, {prev_x: x, prev_y: this.y}, this);
+        doc.change_data(x, this.y, code, palette.fg, palette.bg, { prev_x: x, prev_y: this.y }, this);
         this.draw();
     }
 
@@ -378,7 +378,7 @@ class Cursor {
             doc.start_undo();
             const x = this.x;
             this.left();
-            doc.clear_at(x - 1, this.y, {prev_x: x, prev_y: this.y}, this);
+            doc.clear_at(x - 1, this.y, { prev_x: x, prev_y: this.y }, this);
         }
     }
 
@@ -393,7 +393,7 @@ class Cursor {
             const block = doc.at(x + 1, this.y);
             doc.change_data(x, this.y, block.code, block.fg, block.bg);
         }
-        doc.clear_at(doc.columns - 1, this.y, {prev_x: this.x, prev_y: this.y}, this);
+        doc.clear_at(doc.columns - 1, this.y, { prev_x: this.x, prev_y: this.y }, this);
     }
 
     start_selection() {
@@ -522,7 +522,7 @@ class Cursor {
 
     crop() {
         if (this.mode == modes.SELECTION) this.start_operation_mode(false);
-        send("new_document", {title: doc.title, author: doc.author, group: doc.group, date: doc.date, palette: doc.palette, font_name: doc.font_name, use_9px_font: doc.use_9px_font, ice_colors: doc.ice_colors, ...this.operation_blocks});
+        send("new_document", { title: doc.title, author: doc.author, group: doc.group, date: doc.date, palette: doc.palette, font_bytes: doc.font_bytes, font_name: doc.font_name, use_9px_font: doc.use_9px_font, ice_colors: doc.ice_colors, ...this.operation_blocks });
         this.deselect();
     }
 
@@ -534,7 +534,7 @@ class Cursor {
     }
 
     cut() {
-        const {sx, sy, dx, dy} = this.reorientate_selection();
+        const { sx, sy, dx, dy } = this.reorientate_selection();
         this.copy();
         doc.erase(sx, sy, dx, dy);
         this.start_editing_mode();
@@ -570,7 +570,7 @@ class Cursor {
         this.y = 0;
         this.hidden = true;
         this.flashing = false;
-        this.selection = {sx: 0, sy: 0, dx: 0, dy: 0};
+        this.selection = { sx: 0, sy: 0, dx: 0, dy: 0 };
         this.scroll_document_with_cursor = false;
         on("deselect", (event) => this.deselect());
         on("use_flashing_cursor", (event, value) => this.set_flashing(value));

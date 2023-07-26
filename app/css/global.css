@@ -27,7 +27,6 @@ canvas {
     image-rendering: var(--scaling-type);
     vertical-align: bottom;
 }
-
 ::-webkit-scrollbar {
     width: var(--scrollbar-width);
     height: var(--scrollbar-height);

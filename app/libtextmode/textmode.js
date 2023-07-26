@@ -1,5 +1,3 @@
-const {on, send, send_sync, open_box} = require("../senders");
-
 function $(name) {
     return document.getElementById(name);
 }
@@ -13,7 +11,7 @@ function bytes_to_blocks({columns, rows, bytes}) {
 }
 
 class Sauce {
-    constructor({columns, rows, title = "", author = "", group = "", date, filesize = 0, ice_colors = false, use_9px_font = false, font_name = "IBM VGA", comments = ""} = {}) {
+    constructor({columns, rows, title = "", author = "", group = "", date, filesize = 0, ice_colors = false, use_9px_font = false, font_name = "Default", comments = ""} = {}) {
         this.columns = columns;
         this.rows = rows;
         this.title = title;
@@ -186,7 +184,7 @@ function get_sauce(bytes) {
             const ice_colors = (flags & 0x01) == 1;
             const use_9px_font = (flags >> 1 & 0x02) == 2;
             let font_name = bytes_to_utf8(sauce_bytes, 106, 22).replace(/\0/g, "");
-            if (font_name == "") font_name = "IBM VGA";
+            if (font_name == "") font_name = "Default";
             if (filesize == 0) {
                 filesize = bytes.length = 128;
                 if (number_of_comments) filesize -= number_of_comments * 64 + 5;
@@ -200,8 +198,8 @@ function get_sauce(bytes) {
 }
 
 class Textmode {
-    constructor(bytes) {
-        const sauce = get_sauce(bytes);
+    constructor(bytes, options = null) {
+        const sauce = options || get_sauce(bytes);
         this.columns = sauce.columns;
         this.rows = sauce.rows;
         this.title = sauce.title;
@@ -213,11 +211,49 @@ class Textmode {
         this.use_9px_font = sauce.use_9px_font;
         this.font_name = sauce.font_name;
         this.comments = sauce.comments;
-        this.bytes = bytes.subarray(0, this.filesize);
+        this.bytes = bytes ? bytes.subarray(0, this.filesize) : [];
+        this.palette = sauce.palette || []
+    }
+
+    get palette() {
+        return this.palette_array;
+    }
+
+    set palette(rgb_array) {
+        this.palette_array = rgb_array;
+        this.palette_hashmap = {};
+        for (let index in this.palette_array) {
+            index = parseInt(index, 10);
+            const rgb = this.palette_array[index];
+            this.palette_hashmap[Object.values(rgb).join('|')] = index;
+        }
+    }
+
+    resolve_palette(rgb) {
+        const key = Object.values(rgb).join('|');
+        let index = this.palette_hashmap[key];
+        if (index > 15) return index;
+        return this.add_to_palette(rgb, key);
+    }
+
+    add_to_palette(rgb, key = null) {
+        key = key || Object.values(rgb).join('|');
+        this.palette_array.push(rgb);
+        return this.palette_hashmap[key] = this.palette_array.length - 1;
     }
 }
 
 function resize_canvas(doc, columns, rows) {
+    var client = false;
+    try {
+        const electron = require("electron");
+        if (typeof electron == "object") {
+            const win = electron.remote.getCurrentWindow();
+            client = true;
+        }
+    } catch (err) {
+        console.log(err);
+    }
     const min_rows = Math.min(doc.rows, rows);
     const min_columns = Math.min(doc.columns, columns);
     const new_data = new Array(columns * rows);
@@ -232,8 +268,11 @@ function resize_canvas(doc, columns, rows) {
     doc.data = new_data;
     doc.columns = columns;
     doc.rows = rows;
-    $("drawing_grid").classList.add("hidden");
-    send("uncheck_all_guides");
+    if (client) {
+        const {send} = require("../senders");
+        $("drawing_grid").classList.add("hidden");
+        send("uncheck_all_guides");
+    }
 }
 
 module.exports = {bytes_to_blocks, bytes_to_utf8, current_date, Textmode, add_sauce_for_ans, add_sauce_for_bin, add_sauce_for_xbin, resize_canvas};

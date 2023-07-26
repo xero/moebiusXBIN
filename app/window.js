@@ -3,10 +3,13 @@ const darwin = (process.platform == "darwin");
 const menu = require("./menu");
 const static_wins = {};
 const modal_prefs = {maximizable: false, resizable: false, fullscreenable: false, backgroundColor: "#292c33"};
+const debug = require('electron-debug');
+
+//debug();
 
 async function new_win(file, options, touchbar, touchbar_opts) {
     return new Promise((resolve) => {
-        const win = new electron.BrowserWindow({...options, show: false, useContentSize: true, webPreferences: {nodeIntegration: true}});
+        const win = new electron.BrowserWindow({...options, show: false, useContentSize: true, webPreferences: { nodeIntegration: true, enableRemoteModule: true, contextIsolation: false,}});
         if (touchbar) touchbar(win, touchbar_opts);
         win.on("ready-to-show", (event) => {
             win.show();

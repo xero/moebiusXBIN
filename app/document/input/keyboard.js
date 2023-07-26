@@ -125,22 +125,23 @@ class KeyboardEvent extends events.EventEmitter {
                 this.emit("toggle_bg", 7);
                 return;
             case "ArrowLeft":
-                this.emit("delete_column");
+                this.emit("move_charlist", "left");
                 event.preventDefault();
                 return;
             case "ArrowUp":
-                this.emit("delete_row");
+                this.emit("move_charlist", "up");
                 event.preventDefault();
                 return;
             case "ArrowRight":
-                this.emit("insert_column");
+                this.emit("move_charlist", "right");
                 event.preventDefault();
                 return;
             case "ArrowDown":
-                this.emit("insert_row");
+                this.emit("move_charlist", "down");
                 event.preventDefault();
                 return;
             }
+            
     }
 
     meta_key(event) {

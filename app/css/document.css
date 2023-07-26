@@ -2,7 +2,8 @@
     --sidebar-width: 48px;
     --toolbar-height: 48px;
     --statusbar-height: 22px;
-    --preview-width: 300px;
+    --preview-width: 1px;
+    --charlist-width: 256px;
     --chat-height: 0px;
 }
 #sidebar {
@@ -14,7 +15,7 @@
 #toolbar {
     position: relative;
     float: right;
-    width: calc(100% - var(--preview-width) - var(--sidebar-width));
+    width: calc(100% - var(--preview-width) - var(--charlist-width) - var(--sidebar-width));
     height: var(--toolbar-height);
 }
 .tool {
@@ -97,6 +98,12 @@ body.dark #sidebar, body.dark #toolbar {
 body.dark #current_colors > canvas {
     border: 1px solid white;
 }
+#color_picker {
+    position: absolute;
+    opacity: 0;
+    top: -1000px;
+    left: -1000px;
+}
 #fg {
     top: 4px;
     left: 4px;
@@ -107,13 +114,19 @@ body.dark #current_colors > canvas {
     right: 4px;
     background-color: rgb(0, 0, 0);
 }
-#swatches {
-    column-gap: 0px;
+#swatches section.base {
+    column-gap: 0;
     column-count: 2;
     width: 48px;
     min-height: 192px;
 }
-#swatches > div {
+#swatches section.custom {
+    border-top: 1px solid rgba(0, 0, 0, 0.3);
+}
+#swatches section.custom:empty {
+    border: 0;
+}
+#swatches > section > div {
     display: inline-block;
     vertical-align: bottom;
     width: 24px;
@@ -124,18 +137,22 @@ body.dark #current_colors > canvas {
     outline: 1px solid transparent;
     cursor: pointer;
 }
-#swatches > div.selected_fg {
+#swatches > section > div.add {
+    background-image: url("../img/add_color.png");
+    opacity: 0.6;
+}
+#swatches div.selected_fg {
     background-image: url("../img/selected_fg.png");
 }
-#swatches > div.selected_bg {
+#swatches div.selected_bg {
     background-image: url("../img/selected_bg.png");
 }
-#swatches > div.selected_fg.selected_bg {
+#swatches div.selected_fg.selected_bg {
     background-image: url("../img/selected_fg.png"), url("../img/selected_bg.png");;
 }
 #viewport {
     float: left;
-    width: calc(100% - var(--sidebar-width) -  var(--preview-width) - 1px);
+    width: calc(100% - var(--sidebar-width) -  var(--preview-width) - var(--charlist-width) - 1px);
     height: calc(100% - var(--toolbar-height) - var(--statusbar-height) - var(--chat-height) - 1px);
     border-top: 1px solid var(--border-color);
     border-left: 1px solid var(--border-color);
@@ -145,7 +162,7 @@ body.dark #current_colors > canvas {
     cursor: -webkit-image-set(url("../img/crosshair.png") 1x, url("../img/crosshair_2x.png") 2x) 15 15, crosshair;
 }
 #chat {
-    width: calc(100% - var(--sidebar-width) -  var(--preview-width));
+    width: calc(100% - var(--sidebar-width) -  var(--preview-width) - var(--charlist-width));
     height: var(--chat-height);
     max-height: calc(100% - var(--toolbar-height) - var(--statusbar-height));
     overflow: hidden;
@@ -251,6 +268,34 @@ body.dark #viewport {
     border-color: var(--dark-border-color);
     background-color: var(--dark-view-color);
 }
+#charlist {
+    position: relative;
+    float: right;
+    width: calc(var(--charlist-width) - 1px);
+    background-color: var(--mid-color);
+    height: calc(100% - var(--statusbar-height));
+    border-left: 1px solid var(--border-color);
+    overflow-y: auto;
+    overflow-x: hidden;
+    cursor: pointer;
+}
+#charlist_selector {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 16px;
+    box-shadow: 0 0 0 2px white;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+@keyframes whiteblink {
+    0% {border-color: white;} 50% {opacity: 0;}
+}
+body.dark #charlist {
+    background-color: var(--dark-mid-color);
+    border-color: var(--dark-border-color);
+}
 #preview {
     position: relative;
     float: right;
@@ -296,6 +341,10 @@ body.dark #preview {
     pointer-events: none;
     width: inherit;
     height: inherit;
+}
+#canvas_container.canvas_zoom {
+    transform: scale(2);
+    transform-origin: top;
 }
 .hidden {
     display: none !important;
