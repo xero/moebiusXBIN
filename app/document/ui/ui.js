@@ -176,11 +176,12 @@ on("toggle_drawinggrid", (event, visible, columns) => toggle_drawinggrid(visible
 doc.on("render", () => rescale_guide());
 
 class StatusBar {
-    status_bar_info(columns, rows) {
+    status_bar_info(columns, rows, code='') {
         set_text("columns", `${columns}`);
         set_text("rows", `${rows}`);
         set_text("columns_s", (columns > 1) ? "s" : "");
         set_text("rows_s", (rows > 1) ? "s" : "");
+        set_text("ascii_value", code.code);
     }
 
     use_canvas_size_for_status_bar() {
@@ -190,6 +191,7 @@ class StatusBar {
     set_cursor_position(x, y) {
         set_text("cursor_x", `${x + 1}`);
         set_text("cursor_y", `${y + 1}`);
+        set_text("ascii_value", doc.at(x, y).code);
     }
 
     hide_cursor_position() {
