@@ -137,14 +137,22 @@ function toggle_drawinggrid(visible, columns) {
     if (visible) {
         rescale_drawinggrid(columns);
         $("drawing_grid").classList.remove("hidden");
-        send("check_drawinggrid_" + columns + "x" + (columns / 2));
+        if (columns == 1) {
+            send("check_drawinggrid_1x1");
+        } else {
+            send("check_drawinggrid_" + columns + "x" + (columns / 2));
+        }
     } else {
         $("drawing_grid").classList.add("hidden");
     }
 }
 
 function rescale_drawinggrid(columns) {
-    rows = Math.floor(columns / 2);
+    if (columns > 1) {
+        rows = Math.floor(columns / 2);
+    } else {
+        rows = 1;
+    }
     width = doc.render.font.width * doc.columns;
     height = doc.render.font.height * doc.rows;
     $("drawing_grid").innerHTML = '';

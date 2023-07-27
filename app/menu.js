@@ -535,6 +535,7 @@ function view_menu_template(win) {
                     { label: "PETSCII (40×25)", id: "petscii_guide", click(item) { win.send("toggle_petscii_guide", item.checked); }, type: "checkbox", checked: false },
                     {
                         label: "Drawing grid", submenu: [
+                            { label: "1x1", id: "drawinggrid_1x1", click(item) { win.send("toggle_drawinggrid", item.checked, 1); }, type: "checkbox", checked: false },
                             { label: "4x2", id: "drawinggrid_4x2", click(item) { win.send("toggle_drawinggrid", item.checked, 4); }, type: "checkbox", checked: false },
                             { label: "6x3", id: "drawinggrid_6x3", click(item) { win.send("toggle_drawinggrid", item.checked, 6); }, type: "checkbox", checked: false },
                             { label: "8x4", id: "drawinggrid_8x4", click(item) { win.send("toggle_drawinggrid", item.checked, 8); }, type: "checkbox", checked: false },
@@ -920,6 +921,7 @@ electron.ipcMain.on("check_square_guide", (event, { id }) => check(id, "square_g
 electron.ipcMain.on("check_instagram_guide", (event, { id }) => check(id, "instagram_guide"));
 electron.ipcMain.on("check_file_id_guide", (event, { id }) => check(id, "file_id_guide"));
 electron.ipcMain.on("check_petscii_guide", (event, { id }) => check(id, "petscii_guide"));
+electron.ipcMain.on("check_drawinggrid_1x1", (event, { id }) => check(id, "drawinggrid_1x1"));
 electron.ipcMain.on("check_drawinggrid_4x2", (event, { id }) => check(id, "drawinggrid_4x2"));
 electron.ipcMain.on("check_drawinggrid_6x3", (event, { id }) => check(id, "drawinggrid_6x3"));
 electron.ipcMain.on("check_drawinggrid_8x4", (event, { id }) => check(id, "drawinggrid_8x4"));
@@ -931,6 +933,7 @@ electron.ipcMain.on("uncheck_all_guides", (event, { id }) => {
     uncheck(id, "instagram_guide");
     uncheck(id, "file_id_guide");
     uncheck(id, "petscii_guide");
+    uncheck(id, "drawinggrid_1x1");
     uncheck(id, "drawinggrid_4x2");
     uncheck(id, "drawinggrid_6x3");
     uncheck(id, "drawinggrid_8x4");
