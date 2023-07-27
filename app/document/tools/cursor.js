@@ -284,7 +284,6 @@ class Cursor {
 
     attribute_under_cursor() {
         const block = doc.at(this.x, this.y);
-        statusbar.status_bar_info(dx - sx + 1, dy - sy + 1, doc.at(this.x, this.y));
         palette.fg = block.fg;
         palette.bg = block.bg;
     }
