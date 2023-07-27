@@ -138,6 +138,23 @@ class MouseListener extends events.EventEmitter {
                 }, 50);
             }
         }
+        if (event.shiftKey) {
+            if (this.listening_to_wheel) {
+                let e = document.getElementById("reference_image");
+                let o = parseFloat(e.style.opacity);
+                let a = 0.2;
+                if (event.deltaY > 5) {
+                    if (o >= a) o = o - a;
+                } else if (event.deltaY < 5) {
+                    if (o <= (1.0 - a)) o = o + a;
+                }
+                if (o > 0) e.style.opacity = parseFloat(o);
+                this.listening_to_wheel = false;
+                setTimeout(() => {
+                    this.listening_to_wheel = true;
+                }, 50);
+            }
+        }
     }
 
     constructor() {
