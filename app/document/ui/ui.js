@@ -464,6 +464,8 @@ class Toolbar extends events.EventEmitter {
             this.charlist_y = event.clientY - rect.top;
             this.char_index = Math.floor(this.charlist_y / font.height / 2) * 16 + Math.floor(this.charlist_x / 8 / 2);
             this.draw_charlist_cursor(this.char_index);
+            this.custom_block_index = this.char_index;
+            this.draw_custom_block();
         }, true);
         const ctx = canvas.getContext("2d");
         for (let y = 0, code = 0; y < 16; y++) {
