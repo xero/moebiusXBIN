@@ -481,6 +481,8 @@ class Toolbar extends events.EventEmitter {
         selector.style.top = `${Math.floor(this.char_index / 16) * font.height * 2}px`;
         selector.style.left = `${(this.char_index % 16) * 8 * 2}px`;
         selector.style.height = `${font.height * 2}px`;
+        this.custom_block_index = this.char_index;
+        this.draw_custom_block();
         this.draw_fkeys();
     }
 
@@ -490,7 +492,6 @@ class Toolbar extends events.EventEmitter {
     }
 
     move_charlist(direction) {
-
         if (direction == "up") {
             if (this.char_index > 15) { this.char_index -= 16; }
         }
