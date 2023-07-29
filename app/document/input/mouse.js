@@ -13,9 +13,14 @@ class MouseListener extends events.EventEmitter {
     }
 
     get_xy(event) {
+        let canvas_width;
         const canvas_container = document.getElementById("canvas_container");
         const canvas_container_rect = canvas_container.getBoundingClientRect();
-        const canvas_width = doc.columns * 8;
+        if (doc.use_9px_font) {
+            canvas_width = doc.columns * 9;
+        } else {
+            canvas_width = doc.columns * 8;
+        }
         const canvas_height = doc.rows * doc.font_height;
         let mouseX = event.clientX - canvas_container_rect.left;
         let mouseY = event.clientY - canvas_container_rect.top;
