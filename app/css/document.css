@@ -3,7 +3,7 @@
     --toolbar-height: 48px;
     --statusbar-height: 22px;
     --preview-width: 300px;
-    --charlist-width: 256px;
+    --charlist-width: 128px;
     --chat-height: 0px;
 }
 #sidebar {
@@ -283,7 +283,7 @@ body.dark #viewport {
     position: absolute;
     top: 0px;
     left: 0px;
-    width: 16px;
+    width: 8px;
     box-shadow: 0 0 0 2px white;
     box-sizing: border-box;
     pointer-events: none;

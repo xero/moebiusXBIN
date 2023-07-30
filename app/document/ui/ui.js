@@ -462,8 +462,8 @@ class Toolbar extends events.EventEmitter {
         const charlist = document.getElementById("charlist");
         canvas.width = font.width * 16;
         canvas.height = font.height * 16;
-        canvas.style.width = `${canvas.width * 2}px`;
-        canvas.style.height = `${canvas.height * 2}px`;
+        canvas.style.width = `${canvas.width}px`;
+        canvas.style.height = `${canvas.height}px`;
         if (charlist.contains(charlist.getElementsByTagName('canvas')[0])) {
             charlist.removeChild(charlist.getElementsByTagName('canvas')[0]);
         }
@@ -472,7 +472,7 @@ class Toolbar extends events.EventEmitter {
             const rect = event.target.getBoundingClientRect();
             this.charlist_x = event.clientX - rect.left;
             this.charlist_y = event.clientY - rect.top;
-            this.char_index = Math.floor(this.charlist_y / font.height / 2) * 16 + Math.floor(this.charlist_x / 8 / 2);
+            this.char_index = Math.floor(this.charlist_y / font.height) * 16 + Math.floor(this.charlist_x / 8);
             this.draw_charlist_cursor(this.char_index);
             this.custom_block_index = this.char_index;
             this.draw_custom_block();
@@ -488,9 +488,9 @@ class Toolbar extends events.EventEmitter {
     draw_charlist_cursor(index) {
         const font = doc.font;
         let selector = document.getElementById("charlist_selector");
-        selector.style.top = `${Math.floor(this.char_index / 16) * font.height * 2}px`;
-        selector.style.left = `${(this.char_index % 16) * 8 * 2}px`;
-        selector.style.height = `${font.height * 2}px`;
+        selector.style.top = `${Math.floor(this.char_index / 16) * font.height}px`;
+        selector.style.left = `${(this.char_index % 16) * 8}px`;
+        selector.style.height = `${font.height}px`;
         this.custom_block_index = this.char_index;
         this.draw_custom_block();
         this.draw_fkeys();
