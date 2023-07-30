@@ -6,7 +6,7 @@ Moebius XBIN is an XBIN Editor for MacOS, Linux and Windows. This is a forked ve
 - `Moebius XBIN` extends the original and contains support for custom colors and character sets and saving and loading xbin files (hence the name)
 - `Moebius XBIN GJ Edition` which originally was just me wanting to stop the function keys fro re-mapping -- but now has become a bit more.
 
-## Moebius GJ Edition:
+## Moebius XBIN GJ Edition:
 - Stops the function keys from being remapped when clicking in the character list.
 - Makes default font IBM VGA instead of TOPAZ 437 (preference)
 - Lets you use the character list picker to load the custom paint brush block.
