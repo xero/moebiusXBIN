@@ -234,7 +234,7 @@ function hide_scrollbars(value) {
 }
 
 function show_charlist(visible) {
-    set_var("charlist-width", visible ? "256px" : "1px");
+    set_var("charlist-width", visible ? "128px" : "1px");
 }
 
 function current_zoom_factor() {
