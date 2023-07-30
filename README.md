@@ -14,6 +14,7 @@ Moebius XBIN is an XBIN Editor for MacOS, Linux and Windows. This is a forked ve
 - Adds opacity adjustment for drawing grids and guides with `ALT+Mouse Wheel`
 - Adds a 1x1 drawing grid
 - Adds character code to status bar
+- Smaller character list (actual size of font vs 2x zoom previously)
 - ... more things to come perhaps!
 
 ## Download packages
