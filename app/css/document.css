@@ -431,6 +431,7 @@ body.dark #statusbar > div > div {
     background-size: 100%;
     background-repeat: no-repeat;
     opacity: 0.4;
+    image-rendering: pixelated;
 }
 #guide.hidden {
     display: none;

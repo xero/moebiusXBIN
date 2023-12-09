@@ -51,7 +51,7 @@ async function new_document_window() {
         } else {
             docs[win.id].win.setMenu(docs[win.id].menu);
         }
-        //win.openDevTools({mode: "detach"});
+        // win.openDevTools({mode: "detach"});
     });
     win.on("close", (event) => {
         if (prefs.get("unsaved_changes") && docs[win.id].edited && !docs[win.id].destroyed) {
