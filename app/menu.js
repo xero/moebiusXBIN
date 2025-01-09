@@ -681,12 +681,14 @@ electron.ipcMain.on("disable_redo", (event, { id }) => {
 });
 
 electron.ipcMain.on("enable_reference_image", (event, { id }) => {
+    // TODO: need to test this
     enable(id, "toggle_reference_image");
     check(id, "toggle_reference_image");
     enable(id, "clear_reference_image");
 });
 
 electron.ipcMain.on("disable_clear_reference_image", (event, { id }) => {
+    // TODO: need to test this
     disable(id, "toggle_reference_image");
     disable(id, "clear_reference_image");
 });

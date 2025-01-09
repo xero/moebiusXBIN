@@ -22,19 +22,52 @@ function set_var_px(name, value) {
 function open_reference_image() {
     const files = open_box({ filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg"] }] });
     if (files) {
-        $("reference_image").style.backgroundImage = `url(${electron.nativeImage.createFromPath(files[0]).toDataURL()})`;
-        $("reference_image").style.opacity = 0.4;
+        $("reference_image").classList.remove("hidden");
+        $("reference_image").src = electron.nativeImage.createFromPath(files[0]).toDataURL();
+
+        $("reference_hide").classList.remove("brush_mode_selected");
+        $("reference_show").classList.remove("brush_mode_selected");
+
+        $("reference_hide").classList.remove("brush_mode_ghosted");
+        $("reference_show").classList.remove("brush_mode_ghosted");
+
+        show_reference_image();
+
         send("enable_reference_image");
     }
 }
 
-function toggle_reference_image(visible) {
-    $("reference_image").style.opacity = visible ? 0.4 : 0.0;
+function clear_reference_image() {
+    $("reference_image").classList.add("hidden")
+    $("reference_image").src = "";
+
+    $("reference_hide").classList.remove("brush_mode_selected");
+    $("reference_show").classList.remove("brush_mode_selected");
+
+    $("reference_hide").classList.add("brush_mode_ghosted");
+    $("reference_show").classList.add("brush_mode_ghosted");
+
+    send("disable_clear_reference_image");
 }
 
-function clear_reference_image() {
-    $("reference_image").style.removeProperty("background-image");
-    send("disable_clear_reference_image");
+function toggle_reference_image(visible) {
+    if (visible) {
+        show_reference_image();
+    } else {
+        hide_reference_image();
+    }
+}
+
+function show_reference_image() {
+    $("reference_hide").classList.remove("brush_mode_selected");
+    $("reference_show").classList.add("brush_mode_selected");
+    $("reference_image").style.opacity = "0.4";
+}
+
+function hide_reference_image() {
+    $("reference_hide").classList.add("brush_mode_selected");
+    $("reference_show").classList.remove("brush_mode_selected");
+    $("reference_image").style.opacity = "0.0";
 }
 
 on("open_reference_image", (event) => open_reference_image());
@@ -365,6 +398,7 @@ class Tools extends events.EventEmitter {
             case this.modes.ELLIPSE_FILLED: return $("ellipse_mode");
             case this.modes.FILL: return $("fill_mode");
             case this.modes.SAMPLE: return $("sample_mode");
+            case this.modes.REFERENCE: return $("reference_mode");
         }
     }
 
@@ -414,7 +448,19 @@ class Tools extends events.EventEmitter {
 
     constructor() {
         super();
-        this.modes = { SELECT: 0, BRUSH: 1, SHIFTER: 2, LINE: 3, RECTANGLE_OUTLINE: 4, RECTANGLE_FILLED: 5, ELLIPSE_OUTLINE: 6, ELLIPSE_FILLED: 7, FILL: 8, SAMPLE: 9 };
+        this.modes = {
+            SELECT: 0,
+            BRUSH: 1,
+            SHIFTER: 2,
+            LINE: 3,
+            RECTANGLE_OUTLINE: 4,
+            RECTANGLE_FILLED: 5,
+            ELLIPSE_OUTLINE: 6,
+            ELLIPSE_FILLED: 7,
+            FILL: 8,
+            SAMPLE: 9,
+            REFERENCE: 10
+        };
         on("change_to_select_mode", (event) => this.start(this.modes.SELECT));
         on("change_to_brush_mode", (event) => this.start(this.modes.BRUSH));
         on("change_to_shifter_mode", (event) => this.start(this.modes.SHIFTER));
@@ -442,6 +488,7 @@ class Tools extends events.EventEmitter {
             }, true);
             $("fill_mode").addEventListener("mousedown", (event) => this.start(this.modes.FILL), true);
             $("sample_mode").addEventListener("mousedown", (event) => this.start(this.modes.SAMPLE), true);
+            $("reference_mode").addEventListener("mousedown", (event) => this.start(this.modes.REFERENCE), true);
         });
     }
 }
@@ -603,6 +650,7 @@ class Toolbar extends events.EventEmitter {
         $("select_panel").classList.remove("hidden");
         $("brush_panel").classList.add("hidden");
         $("sample_panel").classList.add("hidden");
+        $("reference_panel").classList.add("hidden");
     }
 
     show_brush() {
@@ -611,6 +659,7 @@ class Toolbar extends events.EventEmitter {
         $("select_panel").classList.add("hidden");
         $("brush_panel").classList.remove("hidden");
         $("sample_panel").classList.add("hidden");
+        $("reference_panel").classList.add("hidden");
     }
 
     show_sample() {
@@ -619,6 +668,16 @@ class Toolbar extends events.EventEmitter {
         $("select_panel").classList.add("hidden");
         $("brush_panel").classList.add("hidden");
         $("sample_panel").classList.remove("hidden");
+        $("reference_panel").classList.add("hidden");
+    }
+
+    show_reference() {
+        send("show_reference_touchbar");
+        send("disable_brush_size_shortcuts");
+        $("select_panel").classList.add("hidden");
+        $("brush_panel").classList.add("hidden");
+        $("sample_panel").classList.add("hidden");
+        $("reference_panel").classList.remove("hidden");
     }
 
     fkey_clicker(i) {
@@ -758,11 +817,13 @@ class Toolbar extends events.EventEmitter {
                 this.change_mode(this.modes.COLORIZE);
             });
             this.change_mode(this.modes.HALF_BLOCK);
+            $("reference_open").addEventListener("click", (event) => open_reference_image());
+            $("reference_show").addEventListener("mousedown", (event) => show_reference_image());
+            $("reference_hide").addEventListener("mousedown", (event) => hide_reference_image());
+            clear_reference_image();
         }, true);
 
         keyboard.on("move_charlist", (direction) => this.move_charlist(direction));
-
-
     }
 }
 
