@@ -22,8 +22,12 @@ function set_var_px(name, value) {
 function open_reference_image() {
     const files = open_box({ filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg"] }] });
     if (files) {
-        $("reference_image").classList.remove("hidden");
-        $("reference_image").src = electron.nativeImage.createFromPath(files[0]).toDataURL();
+        let ref = $("reference_image")
+
+        ref.classList.remove("hidden");
+        ref.src = electron.nativeImage.createFromPath(files[0]).toDataURL();
+        ref.style.top = "0";
+        ref.style.left = "0";
 
         $("reference_hide").classList.remove("brush_mode_selected");
         $("reference_show").classList.remove("brush_mode_selected");

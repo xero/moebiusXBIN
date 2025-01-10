@@ -15,6 +15,8 @@ tools.on("start", (mode) => {
     if (enabled) {
         toolbar.show_reference();
 
+        reference_image.classList.add("selected")
+
         // The input/mouse.js event listener is designed to work at the resolution of characters
         // on the canvas, e.g. 25x80. But for this tool, we want to be able to smoothly resize
         // and move the reference image at pixel-level resolution. So this tool registers its
@@ -24,6 +26,8 @@ tools.on("start", (mode) => {
         document.body.addEventListener("pointerup", pointer_up, true);
         document.body.addEventListener("pointerout", pointer_out, true);
     } else {
+        reference_image.classList.remove("selected")
+
         document.getElementById("viewport").removeEventListener("pointerdown", pointer_down, true);
         document.body.removeEventListener("pointermove", pointer_move, true);
         document.body.removeEventListener("pointerup", pointer_up, true);
@@ -59,8 +63,6 @@ function pointer_down(event) {
 }
 
 function pointer_up(event) {
-    if (event.button !== 0) return;
-
     mouse_start_pos = null;
     reference_start_pos = null;
 }
@@ -73,8 +75,6 @@ function pointer_out(event) {
 }
 
 function pointer_move(event) {
-    if (event.button !== 0) return;
-
     if (mouse_start_pos) {
         const y_offset = event.clientY - mouse_start_pos.y;
         const x_offset = event.clientX - mouse_start_pos.x;
