@@ -824,7 +824,6 @@ class Toolbar extends events.EventEmitter {
             $("reference_open").addEventListener("click", (event) => open_reference_image());
             $("reference_show").addEventListener("mousedown", (event) => show_reference_image());
             $("reference_hide").addEventListener("mousedown", (event) => hide_reference_image());
-            clear_reference_image();
         }, true);
 
         keyboard.on("move_charlist", (direction) => this.move_charlist(direction));
