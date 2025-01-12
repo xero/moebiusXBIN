@@ -104,6 +104,50 @@ body.dark .panel > div {
     cursor: pointer;
 }
 
+.label {
+    float: left;
+    line-height: 30px;
+    margin: 8px;
+    margin-right: 0px;
+}
+
+.number-input {
+    float: left;
+    gap: 10px;
+    margin: 8px 0;
+    padding: 1px;
+    line-height: 28px;
+    color: rgba(255, 255, 255, 0.3);
+    background-image: -webkit-linear-gradient(top, rgb(34, 37, 43), rgb(30, 31, 35));
+    border: 1px solid rgba(0, 0, 0, 0.6);
+    text-align: center;
+    width: 3em;
+}
+
+.number-input:focus {
+    outline: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.number-input::-webkit-outer-spin-button,
+.number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#reference_opacity_minus {
+    margin-right: 0px;
+    border-right: none;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+#reference_opacity_plus {
+    border-left: none;
+    margin-left: 0px;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
 #half_block {
     margin-right: 0px;
     border-right: none;
@@ -168,6 +212,10 @@ body.dark .panel > div {
     margin-left: 0px;
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
+}
+
+.range > input {
+    height: 100%;
 }
 
 #brush_size {

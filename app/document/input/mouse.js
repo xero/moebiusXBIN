@@ -1,7 +1,7 @@
 const events = require("events");
 const doc = require("../doc");
 const buttons = { NONE: 0, LEFT: 1, RIGHT: 2 };
-const { toolbar, zoom_in, zoom_out, actual_size } = require("../ui/ui");
+const { toolbar, zoom_in, zoom_out, actual_size, decrease_reference_image_opacity, increase_reference_image_opacity} = require("../ui/ui");
 const palette = require("../palette");
 const { on } = require("../../senders");
 
@@ -132,9 +132,9 @@ class MouseListener extends events.EventEmitter {
         if (event.ctrlKey) { // zooming
             event.preventDefault();
             if (this.listening_to_wheel) {
-                if (event.deltaY > 5) {
+                if (event.deltaY > 1) {
                     zoom_out();
-                } else if (event.deltaY < 5) {
+                } else if (event.deltaY < -1) {
                     zoom_in();
                 }
                 this.listening_to_wheel = false;
@@ -144,15 +144,11 @@ class MouseListener extends events.EventEmitter {
             }
         } else if (event.shiftKey) { // reference image opacity
             if (this.listening_to_wheel) {
-                let e = document.getElementById("reference_image");
-                let o = parseFloat(e.style.opacity);
-                let a = 0.2;
-                if (event.deltaY > 5) {
-                    if (o >= a) o = o - a;
-                } else if (event.deltaY < 5) {
-                    if (o <= (1.0 - a)) o = o + a;
+                if (event.deltaX > 1) {
+                    decrease_reference_image_opacity();
+                } else if (event.deltaX < -1) {
+                    increase_reference_image_opacity();
                 }
-                if (o > 0) e.style.opacity = parseFloat(o);
                 this.listening_to_wheel = false;
                 setTimeout(() => {
                     this.listening_to_wheel = true;

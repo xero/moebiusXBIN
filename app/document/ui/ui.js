@@ -24,7 +24,6 @@ function open_reference_image() {
     if (files) {
         let ref = $("reference_image")
 
-        ref.classList.remove("hidden");
         ref.src = electron.nativeImage.createFromPath(files[0]).toDataURL();
         ref.style.top = "0";
         ref.style.left = "0";
@@ -36,6 +35,9 @@ function open_reference_image() {
         $("reference_show").classList.remove("brush_mode_ghosted");
 
         show_reference_image();
+
+        $("reference_opacity_value").value = 40;
+        $("reference_opacity_value").dispatchEvent(new Event('input', { bubbles: true }))
 
         send("enable_reference_image");
     }
@@ -51,6 +53,8 @@ function clear_reference_image() {
     $("reference_hide").classList.add("brush_mode_ghosted");
     $("reference_show").classList.add("brush_mode_ghosted");
 
+    $("reference_opacity_value").value = "";
+
     send("disable_clear_reference_image");
 }
 
@@ -65,13 +69,30 @@ function toggle_reference_image(visible) {
 function show_reference_image() {
     $("reference_hide").classList.remove("brush_mode_selected");
     $("reference_show").classList.add("brush_mode_selected");
-    $("reference_image").style.opacity = "0.4";
+    $("reference_image").classList.remove("hidden");
 }
 
 function hide_reference_image() {
     $("reference_hide").classList.add("brush_mode_selected");
     $("reference_show").classList.remove("brush_mode_selected");
-    $("reference_image").style.opacity = "0.0";
+    $("reference_image").classList.add("hidden");
+}
+
+function increase_reference_image_opacity() {
+    $("reference_opacity_value").stepUp(1);
+    $("reference_opacity_value").dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+
+function decrease_reference_image_opacity() {
+    $("reference_opacity_value").stepDown(1);
+    $("reference_opacity_value").dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+function on_update_reference_opacity_value(event) {
+    if (Number.isNaN(event.target.value)) return;
+
+    $("reference_image").style.opacity = `${event.target.value / 100}`;
 }
 
 on("open_reference_image", (event) => open_reference_image());
@@ -821,13 +842,26 @@ class Toolbar extends events.EventEmitter {
                 this.change_mode(this.modes.COLORIZE);
             });
             this.change_mode(this.modes.HALF_BLOCK);
-            $("reference_open").addEventListener("click", (event) => open_reference_image());
-            $("reference_show").addEventListener("mousedown", (event) => show_reference_image());
-            $("reference_hide").addEventListener("mousedown", (event) => hide_reference_image());
+            $("reference_open").addEventListener("click", open_reference_image);
+            $("reference_show").addEventListener("mousedown", show_reference_image);
+            $("reference_hide").addEventListener("mousedown", hide_reference_image);
+            $('reference_opacity_minus').addEventListener('click', decrease_reference_image_opacity);
+            $('reference_opacity_plus').addEventListener('click', increase_reference_image_opacity);
+            $('reference_opacity_value').addEventListener('input', on_update_reference_opacity_value);
         }, true);
 
         keyboard.on("move_charlist", (direction) => this.move_charlist(direction));
     }
 }
 
-module.exports = { statusbar: new StatusBar(), tools: new Tools(), toolbar: new Toolbar(), zoom_in, zoom_out, actual_size, canvas_zoom_toggle };
+module.exports = {
+    statusbar: new StatusBar(),
+    tools: new Tools(),
+    toolbar: new Toolbar(),
+    zoom_in,
+    zoom_out,
+    actual_size,
+    canvas_zoom_toggle,
+    increase_reference_image_opacity,
+    decrease_reference_image_opacity,
+};
