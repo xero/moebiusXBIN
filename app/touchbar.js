@@ -52,9 +52,7 @@ function create_touch_bars(win) {
             ],
             escapeItem: new electron.TouchBar.TouchBarButton({label: "Edit", click() {win.send("change_to_select_mode");}})
         }), reference: new electron.TouchBar({
-            items: [
-                // TODO
-            ],
+            items: [],
             escapeItem: new electron.TouchBar.TouchBarButton({label: "Brush", click() {win.send("change_to_brush_mode");}})
         })
     };

@@ -17,7 +17,6 @@ tools.on("start", (mode) => {
     enabled = (mode === tools.modes.REFERENCE);
     if (enabled) {
         toolbar.show_reference();
-
         reference_image.classList.add("selected")
         viewport.classList.add('reference-tool')
         viewport.addEventListener("pointerdown", pointer_down, true);

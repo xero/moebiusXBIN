@@ -144,9 +144,9 @@ class MouseListener extends events.EventEmitter {
             }
         } else if (event.shiftKey) { // reference image opacity
             if (this.listening_to_wheel) {
-                if (event.deltaX > 1) {
+                if (event.deltaX > 1 || event.deltaY > 1) {
                     decrease_reference_image_opacity();
-                } else if (event.deltaX < -1) {
+                } else if (event.deltaX < -1 || event.deltaX < -1) {
                     increase_reference_image_opacity();
                 }
                 this.listening_to_wheel = false;

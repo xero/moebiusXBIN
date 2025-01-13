@@ -103,7 +103,6 @@ function decrease_reference_image_size() {
 
 function on_update_reference_size_value(event) {
     if (Number.isNaN(event.target.value)) return;
-
     let width = doc.use_9px_font ? event.target.value * 9 : event.target.value * 8;
     $("reference_image").style.width = `${width}px`;
 }
@@ -871,8 +870,8 @@ class Toolbar extends events.EventEmitter {
             });
             this.change_mode(this.modes.HALF_BLOCK);
             $("reference_open").addEventListener("click", open_reference_image);
-            $("reference_show").addEventListener("mousedown", show_reference_image);
-            $("reference_hide").addEventListener("mousedown", hide_reference_image);
+            $("reference_show").addEventListener("click", show_reference_image);
+            $("reference_hide").addEventListener("click", hide_reference_image);
             $("reference_reset").addEventListener("click", reset_reference_image);
             $('reference_opacity_minus').addEventListener('click', decrease_reference_image_opacity);
             $('reference_opacity_plus').addEventListener('click', increase_reference_image_opacity);
