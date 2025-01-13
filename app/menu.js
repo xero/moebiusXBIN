@@ -680,6 +680,14 @@ electron.ipcMain.on("disable_redo", (event, { id }) => {
     disable(id, "redo");
 });
 
+electron.ipcMain.on('show_reference_image', (event, { id }) => {
+   check(id, 'toggle_reference_image');
+});
+
+electron.ipcMain.on('hide_reference_image', (event, { id }) => {
+   uncheck(id, 'toggle_reference_image');
+});
+
 electron.ipcMain.on("enable_reference_image", (event, { id }) => {
     enable(id, "toggle_reference_image");
     check(id, "toggle_reference_image");

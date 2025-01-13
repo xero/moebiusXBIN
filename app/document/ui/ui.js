@@ -68,12 +68,14 @@ function show_reference_image() {
     $("reference_hide").classList.remove("brush_mode_selected");
     $("reference_show").classList.add("brush_mode_selected");
     $("reference_image").classList.remove("hidden");
+    send("show_reference_image");
 }
 
 function hide_reference_image() {
     $("reference_hide").classList.add("brush_mode_selected");
     $("reference_show").classList.remove("brush_mode_selected");
     $("reference_image").classList.add("hidden");
+    send("hide_reference_image");
 }
 
 function increase_reference_image_opacity() {
