@@ -28,16 +28,21 @@ function open_reference_image() {
         ref.style.top = "0";
         ref.style.left = "0";
 
-        $("reference_hide").classList.remove("brush_mode_selected");
-        $("reference_show").classList.remove("brush_mode_selected");
-
-        $("reference_hide").classList.remove("brush_mode_ghosted");
-        $("reference_show").classList.remove("brush_mode_ghosted");
-
-        show_reference_image();
+        // TODO: wrong !
+        document.querySelectorAll(".reference-control").forEach(control => control.disabled = false);
 
         $("reference_opacity_value").value = 40;
         $("reference_opacity_value").dispatchEvent(new Event('input', { bubbles: true }))
+
+        $('reference_size_value').value = doc.columns;
+        $("reference_size_value").dispatchEvent(new Event('input', { bubbles: true }))
+
+        $('reference_angle_value').value = 0;
+        $("reference_angle_value").dispatchEvent(new Event('input', { bubbles: true }))
+
+        $("reference_hide").classList.remove("brush_mode_selected");
+        $("reference_show").classList.remove("brush_mode_selected");
+        show_reference_image();
 
         send("enable_reference_image");
     }
@@ -47,13 +52,7 @@ function clear_reference_image() {
     $("reference_image").classList.add("hidden")
     $("reference_image").src = "";
 
-    $("reference_hide").classList.remove("brush_mode_selected");
-    $("reference_show").classList.remove("brush_mode_selected");
-
-    $("reference_hide").classList.add("brush_mode_ghosted");
-    $("reference_show").classList.add("brush_mode_ghosted");
-
-    $("reference_opacity_value").value = "";
+    document.querySelectorAll(".reference-control").forEach(control => control.disabled = true);
 
     send("disable_clear_reference_image");
 }
@@ -83,7 +82,6 @@ function increase_reference_image_opacity() {
     $("reference_opacity_value").dispatchEvent(new Event('input', { bubbles: true }))
 }
 
-
 function decrease_reference_image_opacity() {
     $("reference_opacity_value").stepDown(1);
     $("reference_opacity_value").dispatchEvent(new Event('input', { bubbles: true }))
@@ -91,8 +89,39 @@ function decrease_reference_image_opacity() {
 
 function on_update_reference_opacity_value(event) {
     if (Number.isNaN(event.target.value)) return;
-
     $("reference_image").style.opacity = `${event.target.value / 100}`;
+}
+
+function increase_reference_image_size() {
+    $("reference_size_value").stepUp(1);
+    $("reference_size_value").dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+function decrease_reference_image_size() {
+    $("reference_size_value").stepDown(1);
+    $("reference_size_value").dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+function on_update_reference_size_value(event) {
+    if (Number.isNaN(event.target.value)) return;
+
+    let width = doc.use_9px_font ? event.target.value * 9 : event.target.value * 8;
+    $("reference_image").style.width = `${width}px`; // TODO: get size of column
+}
+
+function increase_reference_image_angle() {
+    $("reference_angle_value").stepUp(1);
+    $("reference_angle_value").dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+function decrease_reference_image_angle() {
+    $("reference_angle_value").stepDown(1);
+    $("reference_angle_value").dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+function on_update_reference_angle_value(event) {
+    if (Number.isNaN(event.target.value)) return;
+    $("reference_image").style.transform = `rotate(${event.target.value}deg)`;
 }
 
 on("open_reference_image", (event) => open_reference_image());
@@ -848,7 +877,13 @@ class Toolbar extends events.EventEmitter {
             $('reference_opacity_minus').addEventListener('click', decrease_reference_image_opacity);
             $('reference_opacity_plus').addEventListener('click', increase_reference_image_opacity);
             $('reference_opacity_value').addEventListener('input', on_update_reference_opacity_value);
-        }, true);
+            $('reference_size_minus').addEventListener('click', decrease_reference_image_size);
+            $('reference_size_plus').addEventListener('click', increase_reference_image_size);
+            $('reference_size_value').addEventListener('input', on_update_reference_size_value);
+            $('reference_angle_minus').addEventListener('click', decrease_reference_image_angle);
+            $('reference_angle_plus').addEventListener('click', increase_reference_image_angle);
+            $('reference_angle_value').addEventListener('input', on_update_reference_angle_value);
+            }, true);
 
         keyboard.on("move_charlist", (direction) => this.move_charlist(direction));
     }
