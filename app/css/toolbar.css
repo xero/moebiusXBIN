@@ -120,7 +120,7 @@ body.dark .panel > div {
     background-image: -webkit-linear-gradient(top, rgb(34, 37, 43), rgb(30, 31, 35));
     border: 1px solid rgba(0, 0, 0, 0.6);
     text-align: center;
-    width: 3em;
+    width: 3ch;
     height: 28px;
 }
 
@@ -134,47 +134,40 @@ body.dark .panel > div {
   margin: 0;
 }
 
-.reference-control:disabled {
-    opacity: 0.4;
+.reference-control {
+    opacity: var('--reference-control-opacity');
 }
 
-#reference_opacity_minus {
+#reference_show {
     margin-right: 0px;
     border-right: none;
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
 }
 
-#reference_opacity_plus {
+#reference_hide {
     border-left: none;
     margin-left: 0px;
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
 }
-#reference_size_minus {
+
+.reference-control.button-left {
     margin-right: 0px;
     border-right: none;
+    padding: 0 5px;
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
 }
-#reference_size_plus {
+
+.reference-control.button-right {
     border-left: none;
     margin-left: 0px;
+    padding: 0 5px;
     border-top-right-radius: 4px;
     border-bottom-right-radius: 4px;
 }
-#reference_angle_minus {
-    margin-right: 0px;
-    border-right: none;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-#reference_angle_plus {
-    border-left: none;
-    margin-left: 0px;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-}
+
 #half_block {
     margin-right: 0px;
     border-right: none;
@@ -216,29 +209,15 @@ body.dark .panel > div {
     border-bottom-right-radius: 4px;
 }
 
-#reference_open {
+#reference_open, #reference_reset {
     border-radius: 4px;
 }
 
-#reference_open:active {
+#reference_open:active, #reference_reset:active {
     border-color: rgba(255, 255, 255, 0.4);
     color: rgba(255, 255, 255, 0.8);
     text-shadow: 0px -1px rgba(0, 0, 0, 0.2);
     background-image: -webkit-linear-gradient(top, rgba(96, 108, 136, 0.6), rgba(83, 96, 127, 0.6));
-}
-
-#reference_show {
-    margin-right: 0px;
-    border-right: none;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-
-#reference_hide {
-    border-left: none;
-    margin-left: 0px;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
 }
 
 .range > input {
