@@ -22,16 +22,9 @@ function set_var_px(name, value) {
 function open_reference_image() {
     const files = open_box({ filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg"] }] });
     if (files) {
-        let ref = $("reference_image")
-
-        ref.src = electron.nativeImage.createFromPath(files[0]).toDataURL();
-        ref.style.top = "0";
-        ref.style.left = "0";
+        $("reference_image").src = electron.nativeImage.createFromPath(files[0]).toDataURL();
 
         set_var("reference_control_opacity", 1.0);
-
-        $("reference_hide").classList.remove("brush_mode_selected");
-        $("reference_show").classList.remove("brush_mode_selected");
 
         reset_reference_image();
         show_reference_image();
@@ -50,6 +43,9 @@ function clear_reference_image() {
 }
 
 function reset_reference_image() {
+    $("reference_image").style.top = "0";
+    $("reference_image").style.left = "0";
+
     $("reference_opacity_value").value = 40;
     $("reference_opacity_value").dispatchEvent(new Event('input', { bubbles: true }))
 

@@ -25,6 +25,7 @@ tools.on("start", (mode) => {
         document.body.addEventListener("pointermove", pointer_move, true);
         document.body.addEventListener("pointerup", pointer_up, true);
         document.body.addEventListener("pointerout", pointer_out, true);
+
     } else {
         reference_image.classList.remove("selected")
 
@@ -35,15 +36,6 @@ tools.on("start", (mode) => {
     }
 });
 
-function is_cursor_within_bounds(event) {
-    const rect = reference_image.getBoundingClientRect();
-    return (
-        event.clientX >= rect.left &&
-        event.clientX <= rect.right &&
-        event.clientY >= rect.top &&
-        event.clientY <= rect.bottom
-    );
-}
 
 function move_reference(y, x) {
     reference_image.style.top = `${y}px`;
@@ -52,13 +44,13 @@ function move_reference(y, x) {
 
 function pointer_down(event) {
     if (event.button !== 0) return;
-
-    if (is_cursor_within_bounds(event)) {
-        mouse_start_pos = { y: event.clientY, x: event.clientX }
-        reference_start_pos = {
-            y: parseFloat(getComputedStyle(reference_image).top) || 0,
-            left: parseFloat(getComputedStyle(reference_image).left) || 0
-        }
+    mouse_start_pos = {
+        y: event.clientY,
+        x: event.clientX
+    }
+    reference_start_pos = {
+        y: parseFloat(getComputedStyle(reference_image).top) || 0,
+        x: parseFloat(getComputedStyle(reference_image).left) || 0
     }
 }
 
@@ -69,7 +61,6 @@ function pointer_up(event) {
 
 function pointer_out(event) {
     if (event.relatedTarget) return;
-
     mouse_start_pos = null;
     reference_start_pos = null;
 }
@@ -78,7 +69,6 @@ function pointer_move(event) {
     if (mouse_start_pos) {
         const y_offset = event.clientY - mouse_start_pos.y;
         const x_offset = event.clientX - mouse_start_pos.x;
-
-        move_reference(reference_start_pos.y + y_offset, reference_start_pos.left + x_offset);
+        move_reference(reference_start_pos.y + y_offset, reference_start_pos.x + x_offset);
     }
 }
