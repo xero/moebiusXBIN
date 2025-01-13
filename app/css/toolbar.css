@@ -125,7 +125,7 @@ body.dark .panel > div {
     background-image: -webkit-linear-gradient(top, rgb(34, 37, 43), rgb(30, 31, 35));
     border: 1px solid rgba(0, 0, 0, 0.6);
     text-align: center;
-    width: 3ch;
+    width: 4ch;
     height: 28px;
 }
 
@@ -140,7 +140,7 @@ body.dark .panel > div {
 }
 
 .reference-control {
-    opacity: var('--reference-control-opacity');
+    opacity: var(--reference-control-opacity);
 }
 
 #reference_show {

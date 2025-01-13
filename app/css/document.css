@@ -165,6 +165,12 @@ body.dark #current_colors > canvas {
     touch-action: none;
     cursor: -webkit-image-set(url("../img/crosshair.png") 1x, url("../img/crosshair_2x.png") 2x) 15 15, crosshair;
 }
+#viewport.reference-tool {
+    cursor: grab;
+}
+#viewport.reference-tool.grabbing {
+    cursor: grabbing;
+}
 #chat {
     width: calc(100% - var(--sidebar-width) -  var(--preview-width) - var(--charlist-width));
     height: var(--chat-height);

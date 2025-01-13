@@ -24,7 +24,7 @@ function open_reference_image() {
     if (files) {
         $("reference_image").src = electron.nativeImage.createFromPath(files[0]).toDataURL();
 
-        set_var("reference_control_opacity", 1.0);
+        set_var("reference-control-opacity", 1.0);
 
         reset_reference_image();
         show_reference_image();
@@ -37,7 +37,7 @@ function clear_reference_image() {
     $("reference_image").classList.add("hidden")
     $("reference_image").src = "";
 
-    set_var("reference_control_opacity", 0.4);
+    set_var("reference-control-opacity", 0.4);
 
     send("disable_clear_reference_image");
 }
@@ -105,7 +105,7 @@ function on_update_reference_size_value(event) {
     if (Number.isNaN(event.target.value)) return;
 
     let width = doc.use_9px_font ? event.target.value * 9 : event.target.value * 8;
-    $("reference_image").style.width = `${width}px`; // TODO: get size of column
+    $("reference_image").style.width = `${width}px`;
 }
 
 function increase_reference_image_angle() {
