@@ -454,6 +454,10 @@ body.dark #statusbar > div > div {
     outline-style: dashed;
 }
 
+#reference_image.closed {
+    display: none;
+}
+
 #guide.hidden {
     display: none;
 }

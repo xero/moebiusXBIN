@@ -132,43 +132,43 @@ class MouseListener extends events.EventEmitter {
         if (event.ctrlKey) { // zooming
             event.preventDefault();
             if (this.listening_to_wheel) {
-                if (event.deltaY > 1) {
+                if (event.deltaY > 0) {
                     zoom_out();
-                } else if (event.deltaY < -1) {
+                } else if (event.deltaY < 0) {
                     zoom_in();
                 }
                 this.listening_to_wheel = false;
                 setTimeout(() => {
                     this.listening_to_wheel = true;
-                }, 50);
+                }, 100);
             }
         } else if (event.shiftKey) { // reference image opacity
             if (this.listening_to_wheel) {
-                if (event.deltaX > 1 || event.deltaY > 1) {
+                if (event.deltaX > 0 || event.deltaY > 0) {
                     decrease_reference_image_opacity();
-                } else if (event.deltaX < -1 || event.deltaX < -1) {
+                } else if (event.deltaX < 0 || event.deltaX < 0) {
                     increase_reference_image_opacity();
                 }
                 this.listening_to_wheel = false;
                 setTimeout(() => {
                     this.listening_to_wheel = true;
-                }, 50);
+                }, 100);
             }
         } else if (event.altKey) { // grid opacity
             if (this.listening_to_wheel) {
                 let e = document.getElementById("drawing_grid");
                 let o = parseFloat(e.style.opacity);
                 let a = 0.2;
-                if (event.deltaY > 5) {
+                if (event.deltaY > 0) {
                     if (o >= a) o = o - a;
-                } else if (event.deltaY < 5) {
+                } else if (event.deltaY < 0) {
                     if (o <= (1.0 - a)) o = o + a;
                 }
                 if (o > 0) e.style.opacity = parseFloat(o);
                 this.listening_to_wheel = false;
                 setTimeout(() => {
                     this.listening_to_wheel = true;
-                }, 50);
+                }, 100);
             }
         }
     }

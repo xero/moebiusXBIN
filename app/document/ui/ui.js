@@ -23,7 +23,7 @@ function open_reference_image() {
     const files = open_box({ filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg"] }] });
     if (files) {
         $("reference_image").src = electron.nativeImage.createFromPath(files[0]).toDataURL();
-
+        $("reference_image").classList.remove("closed")
         set_var("reference-control-opacity", 1.0);
 
         reset_reference_image();
@@ -34,10 +34,12 @@ function open_reference_image() {
 }
 
 function clear_reference_image() {
-    $("reference_image").classList.add("hidden")
     $("reference_image").src = "";
-
+    $("reference_image").classList.add("closed")
     set_var("reference-control-opacity", 0.4);
+
+    $("reference_hide").classList.remove("brush_mode_selected");
+    $("reference_show").classList.remove("brush_mode_selected");
 
     send("disable_clear_reference_image");
 }
@@ -65,6 +67,8 @@ function toggle_reference_image(visible) {
 }
 
 function show_reference_image() {
+    if ($("reference_image").classList.contains("closed")) return;
+
     $("reference_hide").classList.remove("brush_mode_selected");
     $("reference_show").classList.add("brush_mode_selected");
     $("reference_image").classList.remove("hidden");
@@ -72,6 +76,8 @@ function show_reference_image() {
 }
 
 function hide_reference_image() {
+    if ($("reference_image").classList.contains("closed")) return;
+
     $("reference_hide").classList.add("brush_mode_selected");
     $("reference_show").classList.remove("brush_mode_selected");
     $("reference_image").classList.add("hidden");
