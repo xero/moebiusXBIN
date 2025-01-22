@@ -17,8 +17,8 @@ class BinaryText extends Textmode {
     }
 }
 
-function encode_as_bin(doc, save_without_sauce) {
-    if (doc.columns % 2 != 0) {
+function encode_as_bin(doc, save_without_sauce, allow_odd_columns = false) {
+    if (!allow_odd_columns && doc.columns % 2 != 0) {
         throw("Cannot save in Binary Text format with an odd number of columns.");
     }
     const bytes = new Uint8Array(doc.data.length * 2);
