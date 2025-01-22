@@ -1,5 +1,6 @@
 const {palette_4bit} = require("./palette");
 const {bytes_to_blocks, Textmode, add_sauce_for_bin} = require("./textmode");
+const {send} = require("../senders");
 
 class BinaryText extends Textmode {
     constructor(bytes) {
@@ -19,6 +20,7 @@ class BinaryText extends Textmode {
 
 function encode_as_bin(doc, save_without_sauce, allow_odd_columns = false) {
     if (!allow_odd_columns && doc.columns % 2 != 0) {
+        send("show_odd_column_warning");
         throw("Cannot save in Binary Text format with an odd number of columns.");
     }
     const bytes = new Uint8Array(doc.data.length * 2);

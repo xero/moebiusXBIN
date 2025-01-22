@@ -325,6 +325,12 @@ electron.ipcMain.on("show_controlcharacters", async (event, { id, method, destro
     event.returnValue = true;
 });
 
+electron.ipcMain.on("show_odd_column_warning", async (event, { id }) => {
+    docs[id].modal = await window.new_modal("app/html/odd_column_warning.html", { width: 480, height: 200, parent: docs[id].win, frame: false, ...get_centered_xy(id, 480, 200) });
+    if (darwin) add_darwin_window_menu_handler(id);
+    event.returnValue = true;
+});
+
 if (darwin) {
     electron.app.on("will-finish-launching", (event) => {
         electron.app.on("open-file", (event, file) => {
