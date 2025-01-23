@@ -17,3 +17,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
 }, true);
 
 electron.ipcRenderer.on("cancel", (event) => cancel());
+
+electron.ipcRenderer.on("get_warning_data", (event, {title, content}) => {
+    document.getElementById("warning_title").textContent = title;
+    document.getElementById("warning_content").textContent = content;
+});
