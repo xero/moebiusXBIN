@@ -19,18 +19,21 @@ function set_var_px(name, value) {
     set_var(name, `${value}px`);
 }
 
-function open_reference_image() {
-    const files = open_box({ filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg"] }] });
-    if (files) {
-        $("reference_image").src = electron.nativeImage.createFromPath(files[0]).toDataURL();
-        $("reference_image").classList.remove("closed")
-        set_var("reference-control-opacity", 1.0);
-
-        reset_reference_image();
-        show_reference_image();
-
-        send("enable_reference_image");
+function open_reference_image({ file }) {
+    if (!file) {
+        const files = open_box({ filters: [{ name: "Images", extensions: ["png", "jpg", "jpeg"] }] });
+        if (files.length === 0) return;
+        file = files[0]
     }
+
+    $("reference_image").src = electron.nativeImage.createFromPath(file).toDataURL();
+    $("reference_image").classList.remove("closed")
+    set_var("reference-control-opacity", 1.0);
+
+    reset_reference_image();
+    show_reference_image();
+
+    send("enable_reference_image");
 }
 
 function clear_reference_image() {
@@ -908,4 +911,5 @@ module.exports = {
     canvas_zoom_toggle,
     increase_reference_image_opacity,
     decrease_reference_image_opacity,
+    open_reference_image
 };

@@ -17,6 +17,7 @@ require("./document/tools/ellipse_outline");
 require("./document/tools/fill");
 require("./document/tools/sample");
 require("./document/tools/reference");
+require("./document/input/drag_and_drop");
 
 doc.on("start_rendering", () => send_sync("show_rendering_modal"));
 doc.on("end_rendering", () => send("close_modal"));
