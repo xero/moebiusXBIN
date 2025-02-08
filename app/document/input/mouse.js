@@ -49,6 +49,9 @@ class MouseListener extends events.EventEmitter {
         this.button = buttons.NONE;
         this.started = false;
         this.drawing = false;
+        this.x = null;
+        this.y = null;
+        this.half_y = null;
     }
 
     store(x, y, half_y) {
