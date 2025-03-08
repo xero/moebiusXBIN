@@ -1,12 +1,23 @@
 const electron = require("electron");
 
+function send(channel, opts) {
+    electron.ipcRenderer.send(channel, {id: electron.remote.getCurrentWindow().getParentWindow().id, ...opts});
+}
+
+function ok() {
+    // Confirm the warning
+    send("close_modal");
+}
+
 function cancel() {
-    electron.remote.getCurrentWindow().close();
+    send("close_modal");
+    //electron.remote.getCurrentWindow().close();
 }
 
 document.addEventListener("keydown", (event) => {
     if (event.code == "Enter") {
-        cancel();
+        ok();
+        //cancel();
     } else if (event.code == "Escape") {
         cancel();
     }
