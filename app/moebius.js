@@ -82,7 +82,6 @@ function set_file(id, file) {
     docs[id].win.setTitle(path.basename(file));
     docs[id].win.setDocumentEdited(false);
     docs[id].edited = false;
-    electron.app.addRecentDocument(file);
 }
 
 electron.ipcMain.on("set_file", (event, { id, file }) => set_file(id, file));

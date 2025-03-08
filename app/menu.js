@@ -350,7 +350,6 @@ const application = electron.Menu.buildFromTemplate([moebius_menu, {
         { label: "New", id: "new_document", accelerator: "Cmd+N", click(item) { event.emit("new_document"); } },
         { type: "separator" },
         { label: "Open\u2026", id: "open", accelerator: "Cmd+O", click(item) { event.emit("open"); } },
-        { role: "recentDocuments", submenu: [{ role: "clearRecentDocuments" }] },
         { type: "separator" },
         { role: "close" },
     ]
@@ -370,7 +369,6 @@ function file_menu_template(win) {
             { type: "separator" },
             { label: "Open\u2026", id: "open", accelerator: "CmdorCtrl+O", click(item) { event.emit("open", win); } },
             { label: "Open in Current Window\u2026", id: "open_in_current_window", accelerator: "CmdorCtrl+Shift+O", click(item) { event.emit("open_in_current_window", win); } },
-            darwin ? { role: "recentDocuments", submenu: [{ role: "clearRecentDocuments" }] } : ({ type: "separator" }, { label: "Settings", click(item) { event.emit("preferences"); } }),
             { type: "separator" },
             { label: "Revert to Last Save", id: "revert_to_last_save", click(item) { win.send("revert_to_last_save"); }, enabled: false },
             { label: "Show File in Folder", id: "show_file_in_folder", click(item) { win.send("show_file_in_folder"); }, enabled: false },
@@ -547,7 +545,6 @@ function view_menu_template(win) {
             },
             { type: "separator" },
             { label: "Open Reference In Window\u2026", id: "open_reference_window", click(item) { event.emit("open_reference_window", win); } },
-            { label: "Open Reference Image\u2026", id: "open_reference_image", accelerator: "CmdorCtrl+Shift+O", click(item) { win.send("open_reference_image"); } },
             { label: "Toggle Reference Image", id: "toggle_reference_image", accelerator: "Ctrl+Tab", click(item) { win.send("toggle_reference_image", item.checked); }, enabled: false, type: "checkbox", checked: true },
             { label: "Clear", id: "clear_reference_image", click(item) { win.send("clear_reference_image"); }, enabled: false },
             { type: "separator" },
