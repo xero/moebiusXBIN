@@ -6,3 +6,10 @@ server*.ans
 Thumbs.db
 moebius.code-workspace
 .idea
+
+# ESLint
+.eslintcache
+
+# Prettier
+.prettiercache
+.prettierignore
