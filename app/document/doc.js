@@ -1022,24 +1022,28 @@ class TextModeDoc extends events.EventEmitter {
     insert_row(y) {
         if (connection) return;
         this.undo_history.push_insert_row(y, libtextmode.insert_row(doc, y));
+        this.resize(doc.columns, doc.rows + 1)
         libtextmode.render_insert_row(doc, y, render);
     }
 
     delete_row(y) {
         if (connection) return;
         this.undo_history.push_delete_row(y, libtextmode.delete_row(doc, y));
+        this.resize(doc.columns, doc.rows - 1)
         libtextmode.render_delete_row(doc, y, render);
     }
 
     insert_column(x) {
         if (connection) return;
         this.undo_history.push_insert_column(x, libtextmode.insert_column(doc, x));
+        this.resize(doc.columns + 1, doc.rows)
         libtextmode.render_insert_column(doc, x, render);
     }
 
     delete_column(x) {
         if (connection) return;
         this.undo_history.push_delete_column(x, libtextmode.delete_column(doc, x));
+        this.resize(doc.columns - 1, doc.rows)
         libtextmode.render_delete_column(doc, x, render);
     }
 

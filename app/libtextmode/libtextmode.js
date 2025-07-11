@@ -280,7 +280,9 @@ function render_delete_row(doc, y, render) {
             render.blink_off_collection[i].getContext("2d").drawImage(render.blink_off_collection[i + 1], 0, 0, render.blink_off_collection[i + 1].width, render.font.height, 0, render.blink_off_collection[i].height - render.font.height, render.blink_off_collection[i].width, render.font.height);
         }
     }
-    for (let x = 0; x < doc.columns; x++) render_at(render, x, doc.rows - 1, doc.data[(doc.rows - 1) * doc.columns + x]);
+    for (let x = 0; x < doc.columns; x++) {
+        render_at(render, x, doc.rows - 1, doc.data[(doc.rows - 1) * doc.columns + x])
+    };
 }
 
 function flip_code_x(code) {

@@ -65,6 +65,22 @@ class KeyboardEvent extends events.EventEmitter {
                     event.preventDefault();
                 }
                 return;
+            case "h": case "H":
+                this.emit("move_charlist", "left");
+                event.preventDefault();
+                return;
+            case "k": case "K":
+                this.emit("move_charlist", "up");
+                event.preventDefault();
+                return;
+            case "l": case "L":
+                this.emit("move_charlist", "right");
+                event.preventDefault();
+                return;
+            case "j": case "J":
+                this.emit("move_charlist", "down");
+                event.preventDefault();
+                return;
         }
     }
 
@@ -123,22 +139,6 @@ class KeyboardEvent extends events.EventEmitter {
                 return;
             case "Digit7":
                 this.emit("toggle_bg", 7);
-                return;
-            case "ArrowLeft":
-                this.emit("move_charlist", "left");
-                event.preventDefault();
-                return;
-            case "ArrowUp":
-                this.emit("move_charlist", "up");
-                event.preventDefault();
-                return;
-            case "ArrowRight":
-                this.emit("move_charlist", "right");
-                event.preventDefault();
-                return;
-            case "ArrowDown":
-                this.emit("move_charlist", "down");
-                event.preventDefault();
                 return;
             }
             
