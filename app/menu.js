@@ -389,6 +389,9 @@ function file_menu_template(win) {
             { type: "separator" },
             { label: "Export As UTF-8\u2026", id: "export_as_utf8", accelerator: "CmdorCtrl+Shift+U", click(item) { win.send("export_as_utf8"); } },
             { type: "separator" },
+            { label: "Save F-Key Character Sets\u2026", id: "save_fkey_sets", click(item) { win.send("save_fkey_sets"); } },
+            { label: "Load F-Key Character Sets\u2026", id: "load_fkey_sets", click(item) { win.send("load_fkey_sets"); } },
+            { type: "separator" },
             { role: "close", accelerator: darwin ? "Cmd+W" : "Alt+F4" }
         ]
     };

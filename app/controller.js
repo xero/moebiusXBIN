@@ -1,9 +1,10 @@
 const electron = require("electron");
-const { on, send, send_sync, msg_box, save_box } = require("./senders");
+const { on, send, send_sync, msg_box, save_box, open_box } = require("./senders");
 const doc = require("./document/doc");
 const { tools } = require("./document/ui/ui");
 const { HourlySaver } = require("./hourly_saver");
 const { remove_ice_colors } = require("./libtextmode/libtextmode");
+const libtextmode = require("./libtextmode/libtextmode");
 let hourly_saver, backup_folder;
 require("./document/ui/canvas");
 require("./document/tools/select");
@@ -186,3 +187,72 @@ on("remove_ice_colors", (event) => send("new_document", remove_ice_colors(doc)))
 on("connect_to_server", (event, { server, pass }) => doc.connect_to_server(server, pass));
 on("backup_folder", (event, folder) => backup_folder = folder);
 on("use_backup", (event, value) => use_backup(value));
+
+// F-key character set save/load functions
+on("save_fkey_sets", async (event) => {
+    const file = save_box(doc.file, "ans", {
+        filters: [{ name: "ANSI Art", extensions: ["ans", "asc", "diz", "nfo", "txt"] }],
+        defaultPath: "fkey_sets.ans"
+    });
+    if (!file) return;
+    
+    // Create 12x20 document from F-key character sets
+    const fkeys = send_sync("get_fkeys"); // Get current F-key sets from preferences
+    const fkey_doc = libtextmode.new_document({
+        columns: 12,
+        rows: 20,
+        title: "Moebius F-Key Character Sets",
+        author: "Moebius"
+    });
+    
+    // Fill the document with F-key characters (12 columns x 20 rows)
+    for (let row = 0; row < 20; row++) {
+        for (let col = 0; col < 12; col++) {
+            const char_code = fkeys[row] && fkeys[row][col] !== undefined ? fkeys[row][col] : 32; // Use space (32) if undefined
+            fkey_doc.data[row * 12 + col] = {
+                code: char_code,
+                fg: 7,  // White foreground
+                bg: 0   // Black background
+            };
+        }
+    }
+    
+    await libtextmode.write_file(fkey_doc, file);
+});
+
+on("load_fkey_sets", async (event) => {
+    const file = open_box({
+        filters: [{ name: "ANSI Art", extensions: ["ans", "asc", "diz", "nfo", "txt"] }, { name: "All Files", extensions: ["*"] }],
+        properties: ["openFile"]
+    });
+    if (!file) return;
+    
+    try {
+        const loaded_doc = await libtextmode.read_file(file[0]);
+        
+        // Extract F-key character sets from 12x20 grid
+        const new_fkeys = [];
+        for (let i = 0; i < 20; i++) {
+            new_fkeys.push(new Array(12).fill(32));
+        }
+        
+        // Extract characters from the loaded document (limit to 12x20 area)
+        const max_rows = Math.min(loaded_doc.rows, 20);
+        const max_cols = Math.min(loaded_doc.columns, 12);
+        
+        for (let row = 0; row < max_rows; row++) {
+            for (let col = 0; col < max_cols; col++) {
+                const index = row * loaded_doc.columns + col;
+                if (index < loaded_doc.data.length && loaded_doc.data[index]) {
+                    new_fkeys[row][col] = loaded_doc.data[index].code || 32;
+                }
+            }
+        }
+        
+        // Update the F-key character sets
+        send("set_fkeys", { fkeys: new_fkeys });
+        
+    } catch (error) {
+        msg_box("Error loading F-key character sets: " + error.message);
+    }
+});

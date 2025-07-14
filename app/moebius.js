@@ -313,6 +313,20 @@ electron.ipcMain.on("set_fkey", async (event, { id, num, fkey_index, code }) => 
     }
 });
 
+electron.ipcMain.on("get_fkeys", (event) => {
+    event.returnValue = prefs.get("fkeys");
+});
+
+electron.ipcMain.on("set_fkeys", (event, { id, fkeys }) => {
+    update_prefs("fkeys", fkeys);
+    // Update all open windows with new F-key data
+    Object.values(docs).forEach(doc => {
+        if (doc.win && !doc.win.isDestroyed()) {
+            doc.win.send("fkeys", fkeys);
+        }
+    });
+});
+
 electron.ipcMain.on("ready", async (event, { id }) => {
     if (splash_screen && !splash_screen.isDestroyed()) splash_screen.close();
     if (prefs.get("smallscale_guide")) docs[id].win.send("toggle_smallscale_guide", true);

@@ -556,8 +556,10 @@ class Toolbar extends events.EventEmitter {
     }
 
     redraw_fkeys() {
-        if (!doc.render) return;
-        for (let i = 0; i < 12; i++) this.draw_fkey(`f${i + 1}`, this.fkeys[this.fkey_index][i]);
+        if (!doc.render || !this.fkeys || !this.fkeys[this.fkey_index]) return;
+        for (let i = 0; i < 12; i++) {
+            this.draw_fkey(`f${i + 1}`, this.fkeys[this.fkey_index][i])
+        };
         $("fkey_chooser_num").textContent = `${this.fkey_index + 1}`;
     }
 
@@ -572,16 +574,21 @@ class Toolbar extends events.EventEmitter {
     }
 
     change_fkeys(num) {
+        if (!this.fkeys || num < 0 || num >= this.fkeys.length) return;
         this.fkey_index = num;
         this.redraw_fkeys();
     }
 
     previous_character_set() {
-        this.change_fkeys((this.fkey_index == 0) ? this.fkeys.length - 1 : this.fkey_index - 1);
+        if (!this.fkeys || this.fkeys.length === 0) return;
+        const prev_index = (this.fkey_index <= 0) ? this.fkeys.length - 1 : this.fkey_index - 1;
+        this.change_fkeys(prev_index);
     }
 
     next_character_set() {
-        this.change_fkeys((this.fkey_index + 1 == this.fkeys.length) ? 0 : this.fkey_index + 1);
+        if (!this.fkeys || this.fkeys.length === 0) return;
+        const next_index = (this.fkey_index + 1 >= this.fkeys.length) ? 0 : this.fkey_index + 1;
+        this.change_fkeys(next_index);
     }
 
     increase_brush_size() {
@@ -697,6 +704,7 @@ class Toolbar extends events.EventEmitter {
         this.charlist_x = 0;
         this.charlist_y = 0;
         this.char_index = 0;
+        this.fkeys = []; // Initialize as empty array to prevent undefined errors
         on("fkeys", (event, value) => {
             this.fkeys = value;
             this.redraw_fkeys();
@@ -772,6 +780,11 @@ class Toolbar extends events.EventEmitter {
 
         keyboard.on("move_charlist", (direction) => this.move_charlist(direction));
         keyboard.on("insert_charlist_selection", () => this.insert_charlist_selection());
+        
+        on("update_fkeys", (event, new_fkeys) => {
+            this.fkeys = new_fkeys;
+            this.redraw_fkeys();
+        });
 
 
     }
