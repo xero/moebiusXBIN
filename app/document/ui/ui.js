@@ -325,6 +325,11 @@ function overwrite_mode(value) {
     send("update_menu_checkboxes", { overwrite_mode: value, insert_mode: false });
 }
 
+function q_key_insert(value) {
+    keyboard.q_key_insert = value;
+    send("update_menu_checkboxes", { q_key_insert: value });
+}
+
 doc.on("new_document", () => {
     ice_colors(doc.ice_colors);
     use_9px_font(doc.use_9px_font);
@@ -336,6 +341,7 @@ doc.on("change_font", (font_name) => change_font(font_name));
 keyboard.on("insert", (value) => insert_mode(value));
 on("insert_mode", (event, value) => insert_mode(value));
 on("overwrite_mode", (event, value) => overwrite_mode(value));
+on("q_key_insert", (event, value) => q_key_insert(value));
 
 on("show_statusbar", (event, visible) => show_statusbar(visible));
 on("show_preview", (event, visible) => show_preview(visible));
@@ -518,6 +524,10 @@ class Toolbar extends events.EventEmitter {
             this.char_index = 0;
         }
         this.draw_charlist_cursor(this.char_index)
+    }
+
+    insert_charlist_selection() {
+        keyboard.emit("key_typed", this.char_index);
     }
 
     draw_fkeys() {
@@ -761,6 +771,7 @@ class Toolbar extends events.EventEmitter {
         }, true);
 
         keyboard.on("move_charlist", (direction) => this.move_charlist(direction));
+        keyboard.on("insert_charlist_selection", () => this.insert_charlist_selection());
 
 
     }

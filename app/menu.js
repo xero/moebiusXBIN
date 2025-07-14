@@ -403,6 +403,7 @@ function edit_menu_template(win, chat) {
             { type: "separator" },
             { label: "Toggle Insert Mode", id: "toggle_insert_mode", accelerator: darwin ? "" : "Insert", type: "checkbox", click(item) { win.send("insert_mode", item.checked); }, checked: false },
             { label: "Toggle Overwrite Mode", id: "overwrite_mode", accelerator: "CmdorCtrl+Alt+O", click(item) { win.send("overwrite_mode", item.checked); }, type: "checkbox", checked: false },
+            { label: "Q Key Inserts Selected Character", id: "q_key_insert", type: "checkbox", click(item) { win.send("q_key_insert", item.checked); }, checked: false },
             { type: "separator" },
             { label: "Mirror Mode", id: "mirror_mode", accelerator: "CmdorCtrl+Alt+M", click(item) { win.send("mirror_mode", item.checked); }, type: "checkbox", checked: false },
             { type: "separator" },
@@ -888,9 +889,10 @@ electron.ipcMain.on("enable_editing_shortcuts", (event, { id }) => {
     enable(id, "select_attribute");
 });
 
-electron.ipcMain.on("update_menu_checkboxes", (event, { id, insert_mode, overwrite_mode, use_9px_font, ice_colors, actual_size, font_name, lospec_palette_name }) => {
+electron.ipcMain.on("update_menu_checkboxes", (event, { id, insert_mode, overwrite_mode, q_key_insert, use_9px_font, ice_colors, actual_size, font_name, lospec_palette_name }) => {
     if (insert_mode != undefined) set_check(id, "toggle_insert_mode", insert_mode);
     if (overwrite_mode != undefined) set_check(id, "overwrite_mode", overwrite_mode);
+    if (q_key_insert != undefined) set_check(id, "q_key_insert", q_key_insert);
     if (use_9px_font != undefined) set_check(id, "use_9px_font", use_9px_font);
     if (ice_colors != undefined) set_check(id, "ice_colors", ice_colors);
     if (actual_size != undefined) set_check(id, "actual_size", actual_size);

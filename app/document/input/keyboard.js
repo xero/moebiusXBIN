@@ -314,6 +314,13 @@ class KeyboardEvent extends events.EventEmitter {
             case "Escape":
                 this.emit("escape");
                 return;
+            case "KeyQ":
+                if (this.q_key_insert) {
+                    this.emit("insert_charlist_selection");
+                    event.preventDefault();
+                    return;
+                }
+                break;
         }
         if (event.key.length == 1) {
             const code = libtextmode.unicode_to_cp437(event.key.charCodeAt(0));
@@ -348,9 +355,11 @@ class KeyboardEvent extends events.EventEmitter {
         this.use_numpad = false;
         this.insert_mode = false;
         this.overwrite_mode = false;
+        this.q_key_insert = false;
         on("use_numpad", (event, value) => this.use_numpad = value);
         on("insert_mode", (event, value) => this.insert_mode = value);
         on("overwrite_mode", (event, value) => this.overwrite_mode = value);
+        on("q_key_insert", (event, value) => this.q_key_insert = value);
         on("f_key", (event, value) => this.emit("f_key", value));
         document.addEventListener("DOMContentLoaded", () => {
             this.chat_input = document.getElementById("chat_input");
