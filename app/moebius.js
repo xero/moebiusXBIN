@@ -243,6 +243,18 @@ electron.ipcMain.on("open_font_browser", async (event, { id }) => {
     event.returnValue = true;
 });
 
+electron.ipcMain.on("open_palette_browser", async (event, { id }) => {
+    docs[id].modal = await window.new_modal("app/html/palette_browser.html", {
+        width: 800,
+        height: 600,
+        parent: docs[id].win,
+        frame: false,
+        ...get_centered_xy(id, 800, 600)
+    });
+    if (darwin) add_darwin_window_menu_handler(id);
+    event.returnValue = true;
+});
+
 electron.ipcMain.handle("get-font-lists", () => {
     const { font_list, viler_font_list } = require("./font_registry.js");
     return {
@@ -256,6 +268,18 @@ electron.ipcMain.on("font-browser-selection", (event, selectedFont) => {
     const parentWin = event.sender.getOwnerBrowserWindow().getParentWindow();
     if (parentWin) {
         parentWin.webContents.send("change_font", selectedFont);
+        // Close the modal
+        const parentId = Object.keys(docs).find(id => docs[id].win === parentWin);
+        if (parentId && docs[parentId].modal && !docs[parentId].modal.isDestroyed()) {
+            docs[parentId].modal.close();
+        }
+    }
+});
+
+electron.ipcMain.on("palette-browser-selection", (event, selectedPalette) => {
+    const parentWin = event.sender.getOwnerBrowserWindow().getParentWindow();
+    if (parentWin) {
+        parentWin.webContents.send("change_palette", selectedPalette);
         // Close the modal
         const parentId = Object.keys(docs).find(id => docs[id].win === parentWin);
         if (parentId && docs[parentId].modal && !docs[parentId].modal.isDestroyed()) {

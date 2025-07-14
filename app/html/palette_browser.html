@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Color Palette Browser</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/palette_browser.css">
+</head>
+<body>
+    <div class="palette-browser">
+        <div class="palette-list" id="paletteList">
+            <!-- Palette items will be populated here -->
+        </div>
+        
+        <div class="palette-preview">
+            <div class="preview-header">
+                <div class="preview-title" id="previewTitle">Select a palette to preview</div>
+                <div class="preview-info" id="previewInfo"></div>
+            </div>
+            
+            <div class="preview-content" id="previewContent">
+                <!-- Palette preview will be rendered here -->
+            </div>
+            
+            <div class="buttons">
+                <button class="btn secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn" id="loadPaletteBtn" onclick="loadSelectedPalette()" disabled>Load Palette</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../modals/palette_browser.js"></script>
+</body>
+</html>

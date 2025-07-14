@@ -533,6 +533,8 @@ function colors_menu_template(win) {
     return {
         label: "Colors",
         submenu: [
+            { label: "Palette Browser\u2026", id: "palette_browser", accelerator: "CmdorCtrl+Shift+P", click(item) { win.send("open_palette_browser"); } },
+            { type: "separator" },
             { label: "Load Lospec palette", submenu: lospec_palette_menu_items(win) },
             { type: "separator" },
             { label: "Select Attribute", id: "select_attribute", accelerator: "Alt+A", click(item) { win.send("select_attribute"); } },

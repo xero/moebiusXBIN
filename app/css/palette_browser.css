@@ -1,0 +1,147 @@
+/*
+:root {
+    --mid-color: rgb(208, 208, 208);
+    --dark-mid-color: rgb(41, 44, 51);
+    --border-color: rgb(165, 165, 165);
+    --dark-border-color: rgb(30, 31, 35);
+    --view-color: rgb(128, 128, 128);
+    --dark-view-color: rgb(34, 37, 43);
+    --scaling-type: pixelated;
+    --scrollbar-width: 8px;
+    --scrollbar-height: 8px;
+    --system-font: BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+*/
+
+body {
+    font-size: 14px;
+    color: #aaaaaa;
+    background-color: var(--dark-mid-color);
+    overflow: hidden;
+}
+
+.palette-browser {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+.palette-list {
+    width: 300px;
+    background: var(--dark-mid-color);
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+}
+
+.palette-preview {
+    flex: 1;
+    background: var(--dark-mid-color);
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+}
+
+.palette-item {
+    padding: 2px;
+    cursor: pointer;
+    border: 1px solid var(--dark-border-color);
+    outline: none;
+    font-size:12px;
+}
+
+.palette-item:last-child {
+    border-bottom: 1px solid var(--dark-border-color);
+}
+
+.palette-item:hover {
+    color: white;  
+}
+
+.palette-item:focus, .palette-item.selected {
+    border-color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0px -1px rgba(0, 0, 0, 0.2);
+    background-image: -webkit-linear-gradient(top, rgba(96, 108, 136, 0.6), rgba(83, 96, 127, 0.6));
+}
+
+.preview-header {
+    margin-bottom: 20px;
+}
+
+.preview-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.preview-info {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.preview-content {
+    flex: 1;
+    background: #000;
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    overflow: auto;
+}
+
+.preview-content img {
+    image-rendering: pixelated;
+    max-width: 100%;
+    display: block;
+    margin: 0 auto 16px;
+}
+
+.color-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 4px;
+}
+
+.color-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 8px;
+    border-radius: 2px;
+}
+
+.color-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.color-hex {
+    font-family: monospace;
+    font-size: 11px;
+    color: #ccc;
+}
+
+.buttons {
+    margin-top: 20px;
+    text-align: right;
+}
+
+.btn {
+    margin: 2px 0;
+    padding: 8px 16px;
+    border-radius: 3px;
+    background: none;
+    color: white;
+    border: 1px solid #AAAAAA;
+}
+
+.btn:hover {
+    border-color: white;
+    color: white;
+}
+
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
