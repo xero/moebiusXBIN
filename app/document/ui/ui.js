@@ -499,7 +499,9 @@ class Toolbar extends events.EventEmitter {
         selector.style.height = `${font.height}px`;
         this.custom_block_index = this.char_index;
         this.draw_custom_block();
-        this.draw_fkeys();
+        if (this.fkeys_enabled) {
+            this.draw_fkeys();
+        }
     }
 
     redraw_charlist() {
@@ -532,7 +534,6 @@ class Toolbar extends events.EventEmitter {
 
     draw_fkeys() {
         // stop the character palette from mapping the function keys
-        return
         for (let i = 0; i < 12; i++) {
             let num = i;
             const fkey_index = this.fkey_index;
@@ -705,9 +706,14 @@ class Toolbar extends events.EventEmitter {
         this.charlist_y = 0;
         this.char_index = 0;
         this.fkeys = []; // Initialize as empty array to prevent undefined errors
+        this.fkeys_enabled = false;
         on("fkeys", (event, value) => {
             this.fkeys = value;
             this.redraw_fkeys();
+        });
+        on("toggle_charlist_fkey_mapping", (event, enabled) => {
+            this.fkeys_enabled = enabled;
+            this.redraw_charlist();
         });
         on("default_fkeys", (event, value) => {
             this.default_fkeys = value;

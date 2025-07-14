@@ -76,44 +76,80 @@ class XBin extends Textmode {
     }
 }
 
+
 function encode_as_xbin(doc, save_without_sauce) {
-    let bin_bytes = encode_as_bin(doc);
-    let header = [88, 66, 73, 78, 26, doc.columns & 255, doc.columns >> 8, doc.rows & 255, doc.rows >> 8, doc.font_height, 0];
+    // Convert document to binary format
+    const bin_bytes = encode_as_bin(doc);
+    
+    // XBIN format constants
+    const XBIN_MAGIC = [88, 66, 73, 78, 26]; // "XBIN" + EOF marker
+    const FLAG_PALETTE = 1;      // Bit 0: Has palette
+    const FLAG_FONT = 1 << 1;    // Bit 1: Has font
+    const FLAG_ICE_COLORS = 1 << 3; // Bit 3: Uses ice colors
+    
+    // Build base header with magic bytes, dimensions, and font height
+    const header = [
+        ...XBIN_MAGIC,
+        doc.columns & 255,        // Low byte of columns
+        doc.columns >> 8,         // High byte of columns  
+        doc.rows & 255,           // Low byte of rows
+        doc.rows >> 8,            // High byte of rows
+        doc.font_height,          // Font height in pixels
+        0                         // Flags byte (will be updated below)
+    ];
+    
+    let flags = 0;
+    let additional_data = [];
+    
+    // Add palette data if present
     if (doc.palette) {
-        header[10] += 1;
+        flags |= FLAG_PALETTE;
+        
         const palette_bytes = [];
-        for (const rgb of doc.palette) {
-            palette_bytes.push(...rgb_to_xbin(rgb));
+        for (const rgb_color of doc.palette) {
+            palette_bytes.push(...rgb_to_xbin(rgb_color));
         }
-        header = header.concat(palette_bytes);
+        additional_data.push(...palette_bytes);
     }
-    //if using custom font loaded to program
+    
+    // Add font data (either custom font or embedded font bytes)
     if (doc.font != null) {
-        header[10] += 1 << 1;
-        const font_bytes = [];
-        for (const value of doc.font.bitmask) {
-            font_bytes.push(value);
-        }
-        header = header.concat(font_bytes);
+        flags |= FLAG_FONT;
+        
+        // Use custom font loaded in program
+        const font_bytes = [...doc.font.bitmask];
+        additional_data.push(...font_bytes);
+    } else {
+        flags |= FLAG_FONT;
+        
+        // Use font from XBIN file
+        const font_bytes = [...doc.font_bytes];
+        additional_data.push(...font_bytes);
     }
-    //else use font from xbin file
-    else {
-        header[10] += 1 << 1;
-        const font_bytes = [];
-        for (const value of doc.font_bytes) {
-            font_bytes.push(value);
-        }
-        header = header.concat(font_bytes);
-    }
+    
+    // Set ice colors flag if enabled
     if (doc.ice_colors) {
-        header[10] += 1 << 3;
+        flags |= FLAG_ICE_COLORS;
     }
-    let bytes = new Uint8Array(header.length + bin_bytes.length);
-    bytes.set(header, 0);
-    bytes.set(bin_bytes, header.length);
+    
+    // Update flags in header
+    header[10] = flags;
+    
+    // Combine header with additional data
+    const complete_header = [...header, ...additional_data];
+    
+    // Create final byte array
+    const total_length = complete_header.length + bin_bytes.length;
+    const bytes = new Uint8Array(total_length);
+    
+    bytes.set(complete_header, 0);
+    bytes.set(bin_bytes, complete_header.length);
+    
+    // Add SAUCE metadata if requested
     if (!save_without_sauce) {
         return add_sauce_for_xbin({ doc, bytes });
     }
+    
     return bytes;
 }
 

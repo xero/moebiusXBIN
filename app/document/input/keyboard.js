@@ -81,6 +81,10 @@ class KeyboardEvent extends events.EventEmitter {
                 this.emit("move_charlist", "down");
                 event.preventDefault();
                 return;
+            case "q": case "Q":
+                this.emit("insert_charlist_selection");
+                event.preventDefault();
+                return;
         }
     }
 
@@ -140,8 +144,7 @@ class KeyboardEvent extends events.EventEmitter {
             case "Digit7":
                 this.emit("toggle_bg", 7);
                 return;
-            }
-            
+        }
     }
 
     meta_key(event) {
