@@ -78,7 +78,6 @@ async function selectFont(fontName, fontElement) {
         item.classList.remove('selected');
     });
     fontElement.classList.add('selected');
-    
     selectedFont = fontName;
     document.getElementById('loadFontBtn').disabled = false;
     
@@ -91,30 +90,24 @@ async function selectFont(fontName, fontElement) {
 }
 
 async function loadFontPreview(fontName) {
-    try {
-        console.log('Loading font preview for:', fontName);
-        
+    try {        
         // Check if preview is already cached
         if (loadedPreviews.has(fontName)) {
-            console.log('Using cached preview for:', fontName);
             displayFontPreview(fontName, loadedPreviews.get(fontName));
             return;
         }
         
         // Load font
-        console.log('Creating Font instance...');
         const font = new Font();
-        console.log('Loading font data...');
         await font.load({ name: fontName });
-        console.log('Font loaded successfully:', font.width, 'x', font.height);
         
         // Generate preview data
-        console.log('Generating preview...');
+        
         const previewData = generateFontPreview(font);
         loadedPreviews.set(fontName, previewData);
         
         displayFontPreview(fontName, previewData);
-        console.log('Preview displayed successfully');
+        
         
     } catch (error) {
         console.error('Error loading font preview for', fontName, ':', error);
@@ -126,9 +119,6 @@ async function loadFontPreview(fontName) {
 
 function generateFontPreview(font) {
     try {
-        console.log('Font object:', font);
-        console.log('Font dimensions:', font.width, 'x', font.height);
-        
         if (!font.canvas) {
             throw new Error('Font canvas is not available');
         }
@@ -140,8 +130,6 @@ function generateFontPreview(font) {
         // Set canvas size: 16 characters wide × 16 characters tall
         canvas.width = font.width * 16;
         canvas.height = font.height * 16;
-        
-        console.log('Preview canvas size:', canvas.width, 'x', canvas.height);
         
         // Draw all 256 characters in a 16x16 grid
         for (let y = 0, code = 0; y < 16; y++) {
@@ -166,7 +154,6 @@ function generateFontPreview(font) {
         }
         
         const dataUrl = canvas.toDataURL();
-        console.log('Generated character grid preview');
         
         return {
             canvas: canvas,

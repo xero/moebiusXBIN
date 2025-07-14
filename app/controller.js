@@ -256,3 +256,89 @@ on("load_fkey_sets", async (event) => {
         msg_box("Error loading F-key character sets: " + error.message);
     }
 });
+
+// Palette save/load functions
+on("save_palette_hex", async (event) => {
+    const file = save_box(doc.file, "hex", {
+        filters: [{ name: "Hex Palette", extensions: ["hex"] }],
+        defaultPath: "palette.hex"
+    });
+    if (!file) return;
+    
+    try {
+        // Get current palette from document
+        const palette = doc.palette || palette_4bit;
+        
+        // Convert RGB palette to hex strings
+        const hex_colors = palette.map(color => {
+            const r = color.r.toString(16).padStart(2, '0');
+            const g = color.g.toString(16).padStart(2, '0');
+            const b = color.b.toString(16).padStart(2, '0');
+            return r + g + b;
+        });
+        
+        // Write hex colors to file (one per line)
+        const hex_content = hex_colors.join('\n') + '\n';
+        const fs = require('fs');
+        fs.writeFileSync(file, hex_content);
+        
+    } catch (error) {
+        msg_box("Error saving palette: " + error.message);
+    }
+});
+
+on("load_palette_hex", async (event) => {
+    const files = open_box({
+        filters: [{ name: "Hex Palette", extensions: ["hex"] }, { name: "All Files", extensions: ["*"] }],
+        properties: ["openFile"]
+    });
+    if (!files || !files[0]) return;
+    
+    try {
+        const fs = require('fs');
+        const content = fs.readFileSync(files[0], 'utf8');
+        
+        // Parse hex colors from file
+        const lines = content.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        const hex_colors = [];
+        
+        for (const line of lines) {
+            // Skip comments and empty lines
+            if (line.startsWith('#') || line.startsWith('//') || line.length === 0) continue;
+            
+            // Extract hex color (remove # if present)
+            let hex = line.replace('#', '').trim();
+            
+            // Validate hex format (6 characters)
+            if (hex.length === 6 && /^[0-9A-Fa-f]+$/.test(hex)) {
+                hex_colors.push(hex);
+            }
+        }
+        
+        if (hex_colors.length === 0) {
+            msg_box("No valid hex colors found in file");
+            return;
+        }
+        
+        // Update document palette using proper API
+        for (let i = 0; i < 16; i++) {
+            if (i < hex_colors.length) {
+                const hex = hex_colors[i];
+                const r = parseInt(hex.substring(0, 2), 16);
+                const g = parseInt(hex.substring(2, 4), 16);
+                const b = parseInt(hex.substring(4, 6), 16);
+                doc.update_palette(i, { r, g, b });
+            } else {
+                // Fill remaining slots with black
+                doc.update_palette(i, { r: 0, g: 0, b: 0 });
+            }
+        }
+        
+        // Update swatches and trigger re-rendering
+        doc.emit("update_swatches");
+        await doc.start_rendering();
+        
+    } catch (error) {
+        msg_box("Error loading palette: " + error.message);
+    }
+});
