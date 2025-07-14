@@ -231,6 +231,39 @@ electron.ipcMain.on("close_modal", (event, { id }) => {
     if (docs[id].modal && !docs[id].modal.isDestroyed()) docs[id].modal.close();
 });
 
+electron.ipcMain.on("open_font_browser", async (event, { id }) => {
+    docs[id].modal = await window.new_modal("app/html/font_browser.html", {
+        width: 800,
+        height: 600,
+        parent: docs[id].win,
+        frame: false,
+        ...get_centered_xy(id, 800, 600)
+    });
+    if (darwin) add_darwin_window_menu_handler(id);
+    event.returnValue = true;
+});
+
+electron.ipcMain.handle("get-font-lists", () => {
+    const { font_list, viler_font_list } = require("./font_registry.js");
+    return {
+        standard: font_list,
+        viler: viler_font_list
+    };
+});
+
+
+electron.ipcMain.on("font-browser-selection", (event, selectedFont) => {
+    const parentWin = event.sender.getOwnerBrowserWindow().getParentWindow();
+    if (parentWin) {
+        parentWin.webContents.send("change_font", selectedFont);
+        // Close the modal
+        const parentId = Object.keys(docs).find(id => docs[id].win === parentWin);
+        if (parentId && docs[parentId].modal && !docs[parentId].modal.isDestroyed()) {
+            docs[parentId].modal.close();
+        }
+    }
+});
+
 electron.ipcMain.on("chat_input_focus", (event, { id }) => {
     if (darwin) electron.Menu.setApplicationMenu(docs[id].chat_input_menu);
 });

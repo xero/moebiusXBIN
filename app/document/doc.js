@@ -1175,6 +1175,7 @@ class TextModeDoc extends events.EventEmitter {
         on("use_9px_font", (event, value) => this.use_9px_font = value);
         on("load_custom_font", (event) => this.load_custom_font());
         on("import_font", (event) => this.import_font());
+        on("open_font_browser", (event) => send("open_font_browser"));
         on("change_font", (event, font_name) => this.font_name = font_name);
         on("change_palette", (event, lospec_palette_name) => this.lospec_palette_name = lospec_palette_name);
         on("get_sauce_info", (event) => send_sync("get_sauce_info", { title: doc.title, author: doc.author, group: doc.group, comments: doc.comments }));
