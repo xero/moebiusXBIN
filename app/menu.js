@@ -495,7 +495,7 @@ function view_menu_template(win) {
             { type: "separator" },
             { label: "Open Reference In Window\u2026", id: "open_reference_window", click(item) { event.emit("open_reference_window", win); } },
             { label: "Toggle Reference Image", id: "toggle_reference_image", accelerator: "Ctrl+Tab", click(item) { win.send("toggle_reference_image", item.checked); }, enabled: false, type: "checkbox", checked: true },
-            { label: "Clear", id: "clear_reference_image", click(item) { win.send("clear_reference_image"); }, enabled: false },
+            { label: "Clear Reference Image", id: "clear_reference_image", click(item) { win.send("clear_reference_image"); }, enabled: false },
             { type: "separator" },
             { label: "Scroll Document With Cursor", id: "scroll_document_with_cursor", accelerator: "CmdorCtrl+R", click(item) { win.send("scroll_document_with_cursor", item.checked); }, type: "checkbox", checked: false },
             { type: "separator" },
