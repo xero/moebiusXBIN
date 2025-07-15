@@ -288,6 +288,12 @@ class Cursor {
         palette.bg = block.bg;
     }
 
+    character_under_cursor() {
+        const block = doc.at(this.x, this.y);
+        toolbar.char_index = block.code;
+        toolbar.draw_charlist_cursor(block.code);
+    }
+
     rotate() {
         libtextmode.rotate(this.operation_blocks);
         this.redraw_operation_blocks();
@@ -579,6 +585,7 @@ class Cursor {
         on("move_block", (event) => this.start_operation_mode(true));
         on("scroll_document_with_cursor", (event, value) => this.scroll_document_with_cursor = value);
         on("use_attribute_under_cursor", (event) => this.attribute_under_cursor());
+        on("use_character_under_cursor", (event) => this.character_under_cursor());
         on("rotate", (event) => this.rotate());
         on("flip_x", (event) => this.flip_x());
         on("flip_y", (event) => this.flip_y());

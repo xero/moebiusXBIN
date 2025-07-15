@@ -270,7 +270,8 @@ const window_menu_items = {
 
 const help_menu_items = {
     label: "Help", role: "help", submenu: [
-        { label: "Tutorial for Moebius XBIN editor", id: "xbin_tutorial", click(item) { electron.shell.openExternal("https://blog.glyphdrawing.club/moebius-ansi-and-ascii-art-editor-with-custom-font-support/"); } },
+        { label: "Guide for MoebiusXBIN editor", id: "xbin_tutorial", click(item) { electron.shell.openExternal("https://blog.glyphdrawing.club/moebius-ansi-and-ascii-art-editor-with-custom-font-support/"); } },
+        { label: "MoebiusXBIN at GitHub", id: "show_repo", click(item) { electron.shell.openExternal("https://github.com/hlotvonen/moebius/"); } },
         { type: "separator" },
         { label: "How to Start a Server", id: "show_repo", click(item) { electron.shell.openExternal("https://github.com/blocktronics/moebius/blob/master/README.md#moebius-server"); } },
         { label: "Enable Function Keys on MacOS", id: "enable_function_keys", click(item) { electron.shell.openExternal("file:///System/Library/PreferencePanes/Keyboard.prefPane/"); }, enabled: darwin },
@@ -282,7 +283,7 @@ const help_menu_items = {
         { type: "separator" },
         { label: "ANSI Art Tutorials at 16Colors", id: "changelog", click(item) { electron.shell.openExternal("https://16colo.rs/tags/content/tutorial"); } },
         { label: "Mœbius Homepage", id: "show_homepage", click(item) { electron.shell.openExternal("https://blocktronics.github.io/moebius/"); } },
-        { label: "Source Code at GitHub", id: "show_repo", click(item) { electron.shell.openExternal("https://github.com/blocktronics/moebius"); } },
+        { label: "Original Source Code at GitHub", id: "show_repo", click(item) { electron.shell.openExternal("https://github.com/blocktronics/moebius"); } },
         { label: "Raise an Issue at GitHub", id: "show_issues", click(item) { electron.shell.openExternal("https://github.com/blocktronics/moebius/issues"); } },
         { type: "separator" },
         { label: "Changelog", id: "changelog", click(item) { event.emit("show_changelog"); } },
@@ -349,9 +350,6 @@ function edit_menu_template(win, chat) {
             { type: "separator" },
             { label: "Toggle Insert Mode", id: "toggle_insert_mode", accelerator: darwin ? "" : "Insert", type: "checkbox", click(item) { win.send("insert_mode", item.checked); }, checked: false },
             { label: "Toggle Overwrite Mode", id: "overwrite_mode", accelerator: "CmdorCtrl+Alt+O", click(item) { win.send("overwrite_mode", item.checked); }, type: "checkbox", checked: false },
-            { type: "separator" },
-            { label: "Toggle Q-Key Inserts Selected Character", id: "q_key_insert", type: "checkbox", click(item) { win.send("q_key_insert", item.checked); }, checked: false },
-            { label: "Toggle Clicking on Character List Maps Function Keys", id: "charlist_fkey_mapping", type: "checkbox", click(item) { win.send("toggle_charlist_fkey_mapping", item.checked); }, checked: false },
             { type: "separator" },
             { label: "Mirror Mode", id: "mirror_mode", accelerator: "CmdorCtrl+Alt+M", click(item) { win.send("mirror_mode", item.checked); }, type: "checkbox", checked: false },
             { type: "separator" },
@@ -510,19 +508,21 @@ function font_menu_template(win) {
     return {
         label: "&Font",
         submenu: [
-            { label: "Show Character List", id: "show_charlist", accelerator: "CmdorCtrl+Alt+L", click(item) { win.send("show_charlist", item.checked); }, type: "checkbox", checked: true },
-            { type: "separator" },
             { label: "Font Browser\u2026", id: "font_browser", accelerator: "CmdorCtrl+Shift+F", click(item) { win.send("open_font_browser"); } },
+            { label: "Change Font (Default)", submenu: font_menu_items(win) },
+            { label: "Change Font (Viler's VGA textmode fonts)", submenu: viler_font_menu_items(win) },
             { type: "separator" },
-            { label: "Change Font", submenu: font_menu_items(win) },
-            { label: "Viler's VGA textmode fonts", submenu: viler_font_menu_items(win) },
             { label: "Load Custom Font\u2026", id: "loadcustomfont", click(item) { win.send("load_custom_font"); } },
             { label: "Reset to default font\u2026", id: "resetxbinfont", click(item) { win.send("change_font", "IBM VGA"); } },
             { label: "Export font\u2026", id: "export_font", click(item) { win.send("export_font"); } },
             { label: "Import font from image (GIF/PNG)\u2026", id: "import_font", click(item) { win.send("import_font"); } },
             { type: "separator" },
-            { label: "How to make yourn own character set", id: "customfont_tutorial", click(item) { electron.shell.openExternal("https://blog.glyphdrawing.club/moebius-ansi-and-ascii-art-editor-with-custom-font-support/"); } },
-
+            { label: "Show Character List", id: "show_charlist", accelerator: "CmdorCtrl+Alt+L", click(item) { win.send("show_charlist", item.checked); }, type: "checkbox", checked: true },
+            { type: "separator" },
+            { label: "Toggle Q-Key Inserts Selected Character", id: "q_key_insert", accelerator: "CmdorCtrl+Alt+F", type: "checkbox", click(item) { win.send("q_key_insert", item.checked); }, checked: false },
+            { label: "Toggle Clicking on Character List Maps Function Keys", id: "charlist_fkey_mapping", type: "checkbox", click(item) { win.send("toggle_charlist_fkey_mapping", item.checked); }, checked: false },
+            { type: "separator" },
+            { label: "Use Character Under Cursor", id: "use_character_under_cursor", accelerator: "Alt+F", click(item) { win.send("use_character_under_cursor"); } },
         ]
     };
 }
@@ -684,6 +684,7 @@ electron.ipcMain.on("enable_selection_menu_items", (event, { id }) => {
     disable(id, "scroll_canvas_left");
     disable(id, "scroll_canvas_right");
     disable(id, "use_attribute_under_cursor");
+    disable(id, "use_character_under_cursor");
     disable(id, "start_selection");
     disable(id, "select_attribute");
 });
@@ -718,6 +719,7 @@ function disable_selection_menu_items(id) {
     enable(id, "scroll_canvas_left");
     enable(id, "scroll_canvas_right");
     enable(id, "use_attribute_under_cursor");
+    enable(id, "use_character_under_cursor");
     enable(id, "start_selection");
 }
 
@@ -761,6 +763,7 @@ electron.ipcMain.on("enable_operation_menu_items", (event, { id }) => {
     disable(id, "paste");
     disable(id, "paste_as_selection");
     disable(id, "use_attribute_under_cursor");
+    disable(id, "use_character_under_cursor");
     disable(id, "start_selection");
 });
 
@@ -780,6 +783,7 @@ function disable_operation_menu_items(id) {
     enable(id, "paste");
     enable(id, "paste_as_selection");
     enable(id, "use_attribute_under_cursor");
+    enable(id, "use_character_under_cursor");
 }
 
 electron.ipcMain.on("disable_operation_menu_items", (event, { id }) => disable_operation_menu_items(id));
@@ -788,6 +792,7 @@ electron.ipcMain.on("disable_editing_shortcuts", (event, { id }) => {
     disable_selection_menu_items(id);
     disable_operation_menu_items(id);
     disable(id, "use_attribute_under_cursor");
+    disable(id, "use_character_under_cursor");
     disable(id, "left_justify_line");
     disable(id, "right_justify_line");
     disable(id, "center_line");
@@ -821,6 +826,7 @@ electron.ipcMain.on("enable_editing_shortcuts", (event, { id }) => {
     disable_selection_menu_items(id);
     disable_operation_menu_items(id);
     enable(id, "use_attribute_under_cursor");
+    enable(id, "use_character_under_cursor");
     enable(id, "left_justify_line");
     enable(id, "right_justify_line");
     enable(id, "center_line");
