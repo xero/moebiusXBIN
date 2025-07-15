@@ -466,8 +466,6 @@ function view_menu_template(win) {
             { label: "Decrease Brush Size", id: "decrease_brush_size", accelerator: "Alt+-", click(item) { win.send("decrease_brush_size"); }, enabled: false },
             { label: "Reset Brush Size", id: "reset_brush_size", accelerator: "Alt+0", click(item) { win.send("reset_brush_size"); }, enabled: false },
             { type: "separator" },
-            { label: "Use 9px Font", id: "use_9px_font", accelerator: "CmdorCtrl+F", click(item) { win.send("use_9px_font", item.checked); }, type: "checkbox", checked: false },
-            { type: "separator" },
             { label: "View canvas at 200%", id: "canvas_zoom_toggle", accelerator: "CmdorCtrl+Alt+2", click(item) { win.send("canvas_zoom_toggle"); }, type: "checkbox", checked: false },
             { label: "Actual Size", id: "actual_size", accelerator: "CmdorCtrl+Alt+0", click(item) { win.send("actual_size"); }, type: "checkbox", checked: false },
             { label: "Zoom In", id: "zoom_in", accelerator: "CmdorCtrl+=", click(item) { win.send("zoom_in"); } },
@@ -525,6 +523,8 @@ function font_menu_template(win) {
             { label: "Toggle Clicking on Character List Maps Function Keys", id: "charlist_fkey_mapping", type: "checkbox", click(item) { win.send("toggle_charlist_fkey_mapping", item.checked); }, checked: false },
             { type: "separator" },
             { label: "Use Character Under Cursor", id: "use_character_under_cursor", accelerator: "Alt+F", click(item) { win.send("use_character_under_cursor"); } },
+            { type: "separator" },
+            { label: "Use 9px Font", id: "use_9px_font", accelerator: "CmdorCtrl+F", click(item) { win.send("use_9px_font", item.checked); }, type: "checkbox", checked: false },
         ]
     };
 }
