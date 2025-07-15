@@ -354,8 +354,7 @@ body.dark #preview {
 }
 #canvas_container.canvas_zoom {
     transform: scale(2);
-    transform-origin: top left;
-    margin: 0;
+    transform-origin: top;
 }
 .hidden {
     display: none !important;

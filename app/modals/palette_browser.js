@@ -286,27 +286,20 @@ async function selectPalette(paletteName, paletteElement) {
 
 async function loadPalettePreview(paletteName) {
     try {
-        console.log('Loading palette preview for:', paletteName);
-        
         // Check if preview is already cached
         if (loadedPreviews.has(paletteName)) {
-            console.log('Using cached preview for:', paletteName);
             displayPalettePreview(paletteName, loadedPreviews.get(paletteName));
             return;
         }
         
         // Load palette
-        console.log('Loading palette data...');
         const colors = lospec_palette(paletteName);
-        console.log('Palette loaded successfully:', colors);
         
         // Generate preview data
-        console.log('Generating preview...');
         const previewData = generatePalettePreview(colors, paletteName);
         loadedPreviews.set(paletteName, previewData);
         
         displayPalettePreview(paletteName, previewData);
-        console.log('Preview displayed successfully');
         
     } catch (error) {
         console.error('Error loading palette preview for', paletteName, ':', error);
@@ -317,9 +310,7 @@ async function loadPalettePreview(paletteName) {
 }
 
 function generatePalettePreview(colors, paletteName) {
-    try {
-        console.log('Palette colors:', colors);
-        
+    try {        
         // Create canvas for color swatches
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -330,9 +321,7 @@ function generatePalettePreview(colors, paletteName) {
         const rows = 2;
         canvas.width = swatchSize * cols;
         canvas.height = swatchSize * rows;
-        
-        console.log('Preview canvas size:', canvas.width, 'x', canvas.height);
-        
+                
         // Draw all 16 colors in a 4x4 grid
         for (let i = 0; i < 16 && i < colors.length; i++) {
             const x = (i % cols) * swatchSize;
@@ -349,7 +338,6 @@ function generatePalettePreview(colors, paletteName) {
         }
         
         const dataUrl = canvas.toDataURL();
-        console.log('Generated color palette preview');
         
         return {
             canvas: canvas,

@@ -252,7 +252,7 @@ function resize_canvas(doc, columns, rows) {
             client = true;
         }
     } catch (err) {
-        console.log(err);
+        console.error(err);
     }
     const min_rows = Math.min(doc.rows, rows);
     const min_columns = Math.min(doc.columns, columns);
