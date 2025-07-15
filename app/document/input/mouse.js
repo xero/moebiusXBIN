@@ -69,6 +69,18 @@ class MouseListener extends events.EventEmitter {
         if (event.altKey) {
             if (!is_legal) return;
             const block = doc.get_half_block(x, half_y);
+            
+            // SHIFT+ALT+Left Click: Pick character under cursor
+            if (event.shiftKey && event.button == 0) {
+                const char_block = doc.at(x, y);
+                toolbar.char_index = char_block.code;
+                toolbar.draw_charlist_cursor(char_block.code);
+                toolbar.custom_block_index = char_block.code;
+                toolbar.draw_custom_block();
+                return;
+            }
+            
+            // Regular ALT+Click: Pick color
             if (block.is_blocky) {
                 palette[(event.button == 0) ? "fg" : "bg"] = block.is_top ? block.upper_block_color : block.lower_block_color;
             } else {
