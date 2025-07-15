@@ -702,7 +702,8 @@ function remove_ice_color_for_block(block) {
 }
 
 function remove_ice_colors(doc) {
-    const new_doc = new Textmode(null, { columns: doc.columns, rows: doc.rows, data: new Array(doc.data.length), palette: doc.palette, font_name: doc.font_name, use_9px_font: doc.use_9px_font, ice_colors: false });
+    const new_doc = new Textmode(null, { columns: doc.columns, rows: doc.rows, palette: doc.palette, font_name: doc.font_name, use_9px_font: doc.use_9px_font, ice_colors: false });
+    new_doc.data = new Array(doc.data.length);
     doc.data.forEach((block, index) => {
         if (block.bg > 7 && block.bg < 16) {
             new_doc.data[index] = remove_ice_color_for_block(block);
