@@ -73,6 +73,7 @@ async function new_document({ columns, rows, title, author, group, date, palette
         const num = Number.parseInt(prefs.get("new_document_rows"));
         rows = (num >= 1 && num <= 3000) ? num : 25;
     }
+    if (use_9px_font === undefined) use_9px_font = prefs.get("use_9px_font");
     win.send("new_document", { columns, rows, title, author, group, date, palette, font_name, use_9px_font, ice_colors, comments, data, font_bytes });
 }
 

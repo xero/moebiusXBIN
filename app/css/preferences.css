@@ -1,52 +1,38 @@
 body {
-    font-size: 14px;
+    font-size: 12px;
     color: #aaaaaa;
     background-color: var(--dark-mid-color);
     overflow: hidden;
 }
 
 form {
-    width: 400px;
-    margin: 0px auto;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    padding:20px;
 }
 
 form > div {
-    margin: 2px 0px;
-}
-
-form > div:first-child {
-    margin-top: 20px;
+    display:flex;
+    align-items:center;
+    gap:4px;
 }
 
 label {
-    display: inline-block;
     width: 300px;
     text-align: right;
-    height: 32px;
-    line-height: 32px;
 }
 
 label.text_box {
     width: 150px;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-label.number_box {
-    width: 300px;
 }
 
 input {
-    vertical-align: top;
-    padding: none;
-    margin: 4px;
-    height: 16px;
     color: white;
-    display: inline-block;
-    border: 1px solid #aaaaaa;
+    border: 1px solid #aaa;
     background: none;
     font-family: var(--system-font);
-    font-size: 14px;
+    font-size: 12px;
     outline: none;
     padding: 3px 6px;
 }
@@ -86,25 +72,16 @@ select {
 }
 
 #timestamp_box {
-    margin-top: 8px;
-}
-
-#backup_folder {
-    height: 24px;
-    line-height: 24px;
-    float: left;
-    display: block;
-    width: calc(100% - 84px);
-    text-align: right;
+    display:flex;
+    flex-wrap:wrap;
+    gap:4px;
 }
 
 button {
-    float: right;
     color: #aaaaaa;
     border-radius: 4px;
-    margin-left: 8px;
-    width: 70px;
-    height: 24px;
+    width:fit-content;
+    padding:4px 8px;
     background: none;
     border: 1px solid #aaaaaa;
     outline: none;
@@ -116,15 +93,5 @@ button:active {
 }
 
 #reset_fkeys_container {
-    position: absolute;
-    bottom: 8px;
-    left: calc((100% - 250px) / 2);
-}
-
-#reset_fkeys {
-    position: relative;
-    display: block;
-    float: none;
-    margin: 0px auto;
-    width: 250px;
+    align-self:center;
 }

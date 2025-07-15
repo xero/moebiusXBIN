@@ -511,7 +511,8 @@ function setupKeyboardNavigation() {
 document.addEventListener('DOMContentLoaded', () => {
     initializePaletteBrowser();
     setupKeyboardNavigation();
-    require('electron').remote.getCurrentWindow().webContents.openDevTools();
+    // Uncomment to enable debug menu
+    // require('electron').remote.getCurrentWindow().webContents.openDevTools();
 });
 
 // Handle window close
