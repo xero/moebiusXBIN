@@ -268,11 +268,14 @@ function resize_canvas(doc, columns, rows) {
     doc.data = new_data;
     doc.columns = columns;
     doc.rows = rows;
+    /* 
+    // Why would we need to remove guides on canvas resize? Commented out instead of removed if there is a reason after all...
     if (client) {
         const {send} = require("../senders");
         $("drawing_grid").classList.add("hidden");
         send("uncheck_all_guides");
     }
+    */
 }
 
 module.exports = {bytes_to_blocks, bytes_to_utf8, current_date, Textmode, add_sauce_for_ans, add_sauce_for_bin, add_sauce_for_xbin, resize_canvas};
