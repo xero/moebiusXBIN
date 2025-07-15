@@ -37,9 +37,11 @@ fileAssociations:
     role: Editor
     icon: document_icon.icns
 mac:
-  artifactName: MoebiusXBIN.dmg
+  artifactName: MoebiusXBIN-universal.dmg
   category: public.app-category.graphics-design
-  target: dmg
+  target:
+  - target: dmg
+    arch: universal
   darkModeSupport: true
 win:
   artifactName: MoebiusXBIN.Setup.exe

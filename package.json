@@ -1,5 +1,6 @@
 {
   "name": "moebius",
+  "type": "commonjs",
   "version": "2.0.0",
   "description": "Modern ANSI Art Editor",
   "repository": {
@@ -13,7 +14,11 @@
     "build": "node_modules/.bin/electron-builder -mwl",
     "build-mac": "node_modules/.bin/electron-builder -m",
     "build-win": "node_modules/.bin/electron-builder -w",
-    "build-linux": "node_modules/.bin/electron-builder -l"
+    "build-linux": "node_modules/.bin/electron-builder -l",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "author": "Andy Herbert <andy.herbert@gmail.com>",
   "license": "Apache-2.0",
@@ -21,7 +26,10 @@
     "browserify": "^16.5.1",
     "electron": "^12.0.2",
     "electron-builder": "^24.9.1",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "eslint": "^8.56.0",
+    "prettier": "^3.2.4",
+    "eslint-config-prettier": "^9.1.0"
   },
   "dependencies": {
     "@andreekeberg/imagedata": "^1.0.2",

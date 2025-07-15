@@ -79,7 +79,7 @@ class XBin extends Textmode {
 
 function encode_as_xbin(doc, save_without_sauce) {
     // Convert document to binary format
-    const bin_bytes = encode_as_bin(doc);
+    const bin_bytes = encode_as_bin(doc, true, true);
     
     // XBIN format constants
     const XBIN_MAGIC = [88, 66, 73, 78, 26]; // "XBIN" + EOF marker
