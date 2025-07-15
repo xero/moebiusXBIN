@@ -746,6 +746,7 @@ class TextModeDoc extends events.EventEmitter {
     }
 
     set use_9px_font(value) {
+        if (!doc) return;
         doc.use_9px_font = value;
         this.start_rendering().then(() => this.emit("use_9px_font", doc.use_9px_font));
         if (connection) connection.use_9px_font(doc.use_9px_font);
