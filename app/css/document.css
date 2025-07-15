@@ -7,16 +7,29 @@
     --chat-height: 0px;
     --reference-control-opacity: 0.4;
 }
+
+/* Main grid container */
+body {
+    display: grid;
+    grid-template-areas: 
+        "sidebar toolbar toolbar charlist preview"
+        "sidebar viewport viewport charlist preview"
+        "sidebar chat chat charlist preview"
+        "statusbar statusbar statusbar statusbar statusbar";
+    grid-template-columns: var(--sidebar-width) 1fr var(--preview-width) var(--charlist-width);
+    grid-template-rows: var(--toolbar-height) 1fr var(--chat-height) var(--statusbar-height);
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+}
 #sidebar {
-    float: left;
-    width: calc(var(--sidebar-width));
-    height: calc(100% - var(--statusbar-height));
+    grid-area: sidebar;
+    width: var(--sidebar-width);
     overflow: hidden;
 }
 #toolbar {
+    grid-area: toolbar;
     position: relative;
-    float: right;
-    width: calc(100% - var(--preview-width) - var(--charlist-width) - var(--sidebar-width));
     height: var(--toolbar-height);
 }
 .tool {
@@ -155,9 +168,7 @@ body.dark #current_colors > canvas {
     background-image: url("../img/selected_fg.png"), url("../img/selected_bg.png");;
 }
 #viewport {
-    float: left;
-    width: calc(100% - var(--sidebar-width) -  var(--preview-width) - var(--charlist-width) - 1px);
-    height: calc(100% - var(--toolbar-height) - var(--statusbar-height) - var(--chat-height) - 1px);
+    grid-area: viewport;
     border-top: 1px solid var(--border-color);
     border-left: 1px solid var(--border-color);
     background-color: var(--view-color);
@@ -172,12 +183,17 @@ body.dark #current_colors > canvas {
     cursor: grabbing;
 }
 #chat {
-    width: calc(100% - var(--sidebar-width) -  var(--preview-width) - var(--charlist-width));
+    grid-area: chat;
     height: var(--chat-height);
-    max-height: calc(100% - var(--toolbar-height) - var(--statusbar-height));
     overflow: hidden;
     background-color: var(--dark-mid-color);
     position: relative;
+    display: grid;
+    grid-template-areas: 
+        "userlist messages"
+        "userlist input";
+    grid-template-columns: 150px 1fr;
+    grid-template-rows: 1fr 28px;
 }
 #chat_resizer {
     position: absolute;
@@ -190,13 +206,10 @@ body.dark #current_colors > canvas {
     background-color: rgba(0, 0, 0, 0.3);
 }
 #user_list {
-    float: left;
+    grid-area: userlist;
     background-color: var(--dark-mid-color);
     border-top: 1px solid var(--dark-border-color);
     border-left: 1px solid var(--dark-border-color);
-    height: calc(100% - 1px);
-    width: calc(150px - 1px);
-    overflow-y: hidden;
     overflow-y: scroll;
 }
 #user_list > div {
@@ -218,12 +231,10 @@ body.dark #current_colors > canvas {
     cursor: default;
 }
 #messages {
-    float: left;
+    grid-area: messages;
     border-top: 1px solid var(--dark-border-color);
     background-color: var(--dark-mid-color);
-    width: calc(100% - 1px - 150px);
     overflow-y: scroll;
-    height: calc(100% - 28px);
     border-left: 1px solid var(--dark-border-color);
 }
 #messages a {
@@ -241,12 +252,12 @@ body.dark #current_colors > canvas {
     color: #aaaaaa;
 }
 #chat_input {
+    grid-area: input;
     background-color: var(--dark-mid-color);
     color: white;
     font-size: 12px;
     border: none;
     padding: 0px 8px;
-    width: calc(100% - 16px - 1px - 150px);
     height: 27px;
     outline: none;
     border-top: 1px solid var(--dark-border-color);
@@ -279,11 +290,9 @@ body.dark #viewport {
     background-color: var(--dark-view-color);
 }
 #charlist {
+    grid-area: charlist;
     position: relative;
-    float: right;
-    width: calc(var(--charlist-width) - 1px);
     background-color: var(--mid-color);
-    height: calc(100% - var(--statusbar-height));
     border-left: 1px solid var(--border-color);
     overflow-y: auto;
     overflow-x: hidden;
@@ -307,11 +316,9 @@ body.dark #charlist {
     border-color: var(--dark-border-color);
 }
 #preview {
+    grid-area: preview;
     position: relative;
-    float: right;
-    width: calc(var(--preview-width) - 1px);
     background-color: var(--mid-color);
-    height: calc(100% - var(--statusbar-height));
     border-left: 1px solid var(--border-color);
     overflow-y: auto;
     overflow-x: hidden;
@@ -360,12 +367,12 @@ body.dark #preview {
     display: none !important;
 }
 #statusbar {
-    position: fixed;
-    bottom: 0px;
-    width: 100%;
+    grid-area: statusbar;
     height: var(--statusbar-height);
     background-color: var(--border-color);
     overflow: hidden;
+    display: flex;
+    align-items: center;
 }
 body.dark #statusbar {
     background-color: var(--dark-border-color);
@@ -381,35 +388,39 @@ body.dark #statusbar > div > div {
     color: rgba(255, 255, 255, 0.3);
 }
 #left_info {
-    float: left;
-    width: 300px;
+    display:flex;
+    gap:16px;
+    flex-shrink:1;
+    padding-left:16px;
 }
 #left_info > div {
-    padding-left: 8px;
-    width: 110px;
     cursor: pointer;
 }
 #mid_info {
-    float: left;
+    flex: 1;
     text-align: center;
-    width: calc(100% - 630px);
+    display:flex;
+    justify-content:center;
+    gap:16px;
 }
 #right_info {
-    float: right;
-    width: 330px;
-    text-align: center;
+    flex-shrink: 1;
+    flex-basis: 300px;
+    
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    text-align: right;
+    padding-right: 16px;
 }
 #font_name {
-    float: left;
-    width: 160px;
+    display: inline-block;
 }
 #cursor_position {
-    float: left;
-    width: 120px;
+    display: inline-block;
 }
 #insert_mode {
-    float: right;
-    width: 50px;
+    display: inline-block;
 }
 #editing_layer {
     position: relative;

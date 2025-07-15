@@ -356,7 +356,7 @@ function zoom_in() {
 }
 
 function zoom_out() {
-    if (current_zoom_factor() >= 1.001) {
+    if (current_zoom_factor() >= 0.501) {
         set_zoom(Math.max(current_zoom_factor() - 0.1, 0.4));
     }
 }
