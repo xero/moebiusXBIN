@@ -475,6 +475,8 @@ function view_menu_template(win) {
             { type: "separator" },
             {
                 label: "Guides", submenu: [
+                    { label: "Middle Line", id: "middle_guide", click(item) { win.send("toggle_middle_guide", item.checked); }, type: "checkbox", checked: false },
+                    { type: "separator" },
                     { label: "Smallscale (80×25)", id: "smallscale_guide", click(item) { win.send("toggle_smallscale_guide", item.checked); }, type: "checkbox", checked: false },
                     { label: "Square (80×40)", id: "square_guide", click(item) { win.send("toggle_square_guide", item.checked); }, type: "checkbox", checked: false },
                     { label: "Instagram (80×50)", id: "instagram_guide", click(item) { win.send("toggle_instagram_guide", item.checked); }, type: "checkbox", checked: false },
@@ -891,6 +893,7 @@ electron.ipcMain.on("check_square_guide", (event, { id }) => check(id, "square_g
 electron.ipcMain.on("check_instagram_guide", (event, { id }) => check(id, "instagram_guide"));
 electron.ipcMain.on("check_file_id_guide", (event, { id }) => check(id, "file_id_guide"));
 electron.ipcMain.on("check_petscii_guide", (event, { id }) => check(id, "petscii_guide"));
+electron.ipcMain.on("check_middle_guide", (event, { id }) => check(id, "middle_guide"));
 electron.ipcMain.on("check_drawinggrid_1x1", (event, { id }) => check(id, "drawinggrid_1x1"));
 electron.ipcMain.on("check_drawinggrid_4x2", (event, { id }) => check(id, "drawinggrid_4x2"));
 electron.ipcMain.on("check_drawinggrid_6x3", (event, { id }) => check(id, "drawinggrid_6x3"));

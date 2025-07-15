@@ -478,6 +478,20 @@ body.dark #statusbar > div > div {
 #guide.guide_row {
     border-bottom: rgba(100, 100, 100) 1px dashed;
 }
+#guide.guide_middle_two {
+    border-left: rgba(100, 100, 100) 1px dashed;
+    border-right: rgba(100, 100, 100) 1px dashed;
+}
+#middle_guide.hidden {
+    display: none;
+}
+#middle_guide.middle_single {
+    border-right: rgba(100, 100, 100) 1px dashed;
+}
+#middle_guide.middle_double {
+    border-left: rgba(100, 100, 100) 1px dashed;
+    border-right: rgba(100, 100, 100) 1px dashed;
+}
 #drawing_grid.hidden {
     display: none;
 }

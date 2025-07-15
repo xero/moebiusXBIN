@@ -5,7 +5,7 @@ const palette = require("../palette");
 const keyboard = require("../input/keyboard");
 const events = require("events");
 const chat = require("./chat")
-let interval, guide_columns, guide_rows, grid_columns;
+let interval, guide_columns, guide_rows, grid_columns, middle_guide_active = false;
 let canvas_zoom_toggled = false;
 
 function $(name) {
@@ -213,6 +213,18 @@ function toggle_petscii_guide(visible) {
     }
 }
 
+function toggle_middle_guide(visible) {
+    if (visible) {
+        middle_guide_active = true;
+        rescale_middle_guide();
+        $("middle_guide").classList.remove("hidden");
+        send("check_middle_guide");
+    } else {
+        middle_guide_active = false;
+        $("middle_guide").classList.add("hidden");
+    }
+}
+
 function rescale_guide() {
     $("guide").style.width = `${doc.render.font.width * Math.min(doc.columns, guide_columns)}px`;
     $("guide").style.height = `${doc.render.font.height * Math.min(doc.rows, guide_rows)}px`;
@@ -226,6 +238,27 @@ function rescale_guide() {
     } else {
         $("guide").classList.remove("guide_row");
     }
+}
+
+function rescale_middle_guide() {
+    const canvas_height = doc.render.font.height * doc.rows;
+    
+    if (doc.columns % 2 === 1) {
+        // Odd width: show two center lines (one on each side of middle)
+        $("middle_guide").style.width = `${doc.render.font.width}px`;
+        $("middle_guide").style.left = `${doc.render.font.width * Math.floor(doc.columns / 2)}px`;
+        $("middle_guide").classList.add("middle_double");
+        $("middle_guide").classList.remove("middle_single");
+    } else {
+        // Even width: show one center line
+        $("middle_guide").style.width = `${doc.render.font.width}px`;
+        $("middle_guide").style.left = `${doc.render.font.width * (doc.columns / 2 - 1)}px`;
+        $("middle_guide").classList.add("middle_single");
+        $("middle_guide").classList.remove("middle_double");
+    }
+    
+    $("middle_guide").style.height = `${canvas_height}px`;
+    $("middle_guide").style.top = "0px";
 }
 
 function toggle_drawinggrid(visible, columns) {
@@ -277,10 +310,12 @@ on("toggle_square_guide", (event, visible) => toggle_square_guide(visible));
 on("toggle_instagram_guide", (event, visible) => toggle_instagram_guide(visible));
 on("toggle_file_id_guide", (event, visible) => toggle_file_id_guide(visible));
 on("toggle_petscii_guide", (event, visible) => toggle_petscii_guide(visible));
+on("toggle_middle_guide", (event, visible) => toggle_middle_guide(visible));
 on("toggle_drawinggrid", (event, visible, columns) => toggle_drawinggrid(visible, columns));
 
 doc.on("render", () => rescale_guide());
 doc.on("render", () => rescale_drawinggrid());
+doc.on("render", () => { if (middle_guide_active) rescale_middle_guide(); });
 
 class StatusBar {
     status_bar_info(columns, rows, code='') {
