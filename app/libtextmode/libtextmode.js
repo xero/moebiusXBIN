@@ -727,10 +727,10 @@ async function importFontFromImage() {
 }
 
 async function load_custom_font(file) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         fs.readFile(file, (err, bytes) => {
-            if (err) throw (`Error: ${file} not found!`);
-            resolve({ bytes: bytes, filename: file });
+            if (err) reject(new Error(`Error: ${file} not found!`));
+            else resolve({ bytes: bytes, filename: file });
         });
     });
 }

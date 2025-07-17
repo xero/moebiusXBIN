@@ -113,7 +113,7 @@ class Font {
 
 		const font_height = bytes.length / 256;
 		if (font_height % 1 !== 0) {
-			throw ("Error loading font.");
+			throw new Error(`Invalid font file: Font file size (${bytes.length} bytes) must be a multiple of 256. Expected sizes: 1536, 2048, 2304, 2560, 2816, 3072, 3328, 3584, 3840, 4096, 4352, 4608, 4864, 5120, 5376, 5632, 5888, 6144, 6400, 6656, 6912, 7168, 7424, 7680, 7936, 8192 bytes for font heights 6-32 pixels.`);
 		}
 		this.height = font_height;
 		this.bitmask = bytes;

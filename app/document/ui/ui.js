@@ -245,8 +245,8 @@ function rescale_middle_guide() {
     
     if (doc.columns % 2 === 1) {
         // Odd width: show two center lines (one on each side of middle)
-        $("middle_guide").style.width = `${doc.render.font.width}px`;
-        $("middle_guide").style.left = `${doc.render.font.width * Math.floor(doc.columns / 2)}px`;
+        $("middle_guide").style.width = `${doc.render.font.width * 2}px`;
+        $("middle_guide").style.left = `${doc.render.font.width * (Math.floor(doc.columns / 2) - 1)}px`;
         $("middle_guide").classList.add("middle_double");
         $("middle_guide").classList.remove("middle_single");
     } else {
@@ -315,7 +315,6 @@ on("toggle_drawinggrid", (event, visible, columns) => toggle_drawinggrid(visible
 
 doc.on("render", () => rescale_guide());
 doc.on("render", () => rescale_drawinggrid());
-doc.on("render", () => { if (middle_guide_active) rescale_middle_guide(); });
 
 class StatusBar {
     status_bar_info(columns, rows, code='') {

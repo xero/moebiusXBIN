@@ -1163,7 +1163,7 @@ class TextModeDoc extends events.EventEmitter {
         this.start_rendering().then(() => this.emit("change_font", doc.font_name));
     }
 
-    async load_custom_font({ file }) {
+    async load_custom_font({ file } = {}) {
         if (!file) {
             const files = open_box({
                 filters: [{
@@ -1180,10 +1180,29 @@ class TextModeDoc extends events.EventEmitter {
             file = files[0]
         }
 
-        const { bytes, filename } = await libtextmode.load_custom_font(file);
-        doc.font_name = path.parse(filename).name;
-        doc.font_bytes = bytes;
-        this.start_rendering().then(() => this.emit("change_font", doc.font_name));
+        try {
+            console.log('Loading custom font:', file);
+            const { bytes, filename } = await libtextmode.load_custom_font(file);
+            console.log('Font loaded successfully:', filename);
+            
+            // Validate font file size
+            if (bytes.length % 256 !== 0) {
+                throw new Error(`Invalid font file: Font file size (${bytes.length} bytes) must be a multiple of 256. This file appears to be corrupted or not a valid font file.`);
+            }
+            
+            const fontHeight = bytes.length / 256;
+            if (fontHeight < 6 || fontHeight > 32) {
+                throw new Error(`Invalid font file: Font height (${fontHeight} pixels) must be between 6 and 32 pixels.`);
+            }
+            
+            doc.font_name = path.parse(filename).name;
+            doc.font_bytes = bytes;
+            await this.start_rendering();
+            this.emit("change_font", doc.font_name);
+        } catch (error) {
+            console.error('Font loading error:', error);
+            alert(`Failed to load custom font: ${error.message || error}`);
+        }
     }
 
     constructor() {
