@@ -5,7 +5,7 @@ const menus = [];
 const chat_menus = [];
 const font_names = [];
 // Import font lists from centralized registry
-const { font_list, viler_font_list } = require("./font_registry");
+const { font_list, viler_font_list, custom_font_list } = require("./font_registry");
 const lospec_palette_names = [];
 const lospec_palette_list = {
     "Isolated16": "Isolated16",
@@ -435,6 +435,16 @@ function viler_font_menu_items(win) {
     });
 }
 
+function custom_font_menu_items(win) {
+    return Object.keys(custom_font_list).map((menu_title) => {
+        return {
+            label: menu_title, submenu: Object.keys(custom_font_list[menu_title]).map((font_name) => {
+                return { label: font_name, id: font_name, click(item) { win.send("change_font", font_name); }, type: "checkbox", checked: false };
+            })
+        };
+    });
+}
+
 function font_menu_items(win) {
     return Object.keys(font_list).map((menu_title) => {
         return {
@@ -511,6 +521,7 @@ function font_menu_template(win) {
             { label: "Font Browser\u2026", id: "font_browser", accelerator: "CmdorCtrl+Shift+F", click(item) { win.send("open_font_browser"); } },
             { label: "Change Font (Default)", submenu: font_menu_items(win) },
             { label: "Change Font (Viler's VGA textmode fonts)", submenu: viler_font_menu_items(win) },
+            { label: "Change Font (Custom & DiscMaster Amiga)", submenu: custom_font_menu_items(win) },
             { type: "separator" },
             { label: "Load Custom Font\u2026", id: "loadcustomfont", click(item) { win.send("load_custom_font"); } },
             { label: "Reset to default font\u2026", id: "resetxbinfont", click(item) { win.send("change_font", "IBM VGA"); } },

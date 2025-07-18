@@ -285,10 +285,11 @@ electron.ipcMain.on("open_palette_browser", async (event, { id }) => {
 });
 
 electron.ipcMain.handle("get-font-lists", () => {
-    const { font_list, viler_font_list } = require("./font_registry.js");
+    const { font_list, viler_font_list, custom_font_list } = require("./font_registry.js");
     return {
         standard: font_list,
-        viler: viler_font_list
+        viler: viler_font_list,
+        custom: custom_font_list
     };
 });
 

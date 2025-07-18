@@ -12,7 +12,7 @@ async function initializeFontBrowser() {
         // Get font lists from main process
         fontLists = await ipcRenderer.invoke('get-font-lists');
         
-        if (!fontLists || (!fontLists.standard && !fontLists.viler)) {
+        if (!fontLists || (!fontLists.standard && !fontLists.viler && !fontLists.custom)) {
             console.error('Failed to load font lists');
             return;
         }
@@ -41,6 +41,14 @@ function populateFontList() {
     if (fontLists.viler) {
         Object.keys(fontLists.viler).forEach(categoryName => {
             const categoryDiv = createFontCategory(`Viler's ${categoryName}`, fontLists.viler[categoryName]);
+            fontListElement.appendChild(categoryDiv);
+        });
+    }
+
+    // Add custom fonts
+    if (fontLists.custom) {
+        Object.keys(fontLists.custom).forEach(categoryName => {
+            const categoryDiv = createFontCategory(`${categoryName}`, fontLists.custom[categoryName]);
             fontListElement.appendChild(categoryDiv);
         });
     }
