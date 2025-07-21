@@ -5,6 +5,7 @@ let selectedFont = null;
 let fontLists = {};
 let loadedPreviews = new Map();
 let favorites = new Set();
+let livePreviewEnabled = false;
 
 // We'll display the font as a character grid (16x16 = 256 characters)
 
@@ -138,6 +139,11 @@ async function selectFont(fontName, fontElement) {
     
     // Load and display font preview
     await loadFontPreview(fontName);
+    
+    // If live preview is enabled, apply font to main canvas
+    if (livePreviewEnabled) {
+        ipcRenderer.send('font-browser-live-preview', fontName);
+    }
 }
 
 async function loadFontPreview(fontName) {
@@ -478,6 +484,7 @@ function setupKeyboardNavigation() {
 document.addEventListener('DOMContentLoaded', () => {
     initializeFontBrowser();
     setupKeyboardNavigation();
+    setupLivePreview();
     // Uncomment to enable debug menu
     //require('electron').remote.getCurrentWindow().webContents.openDevTools();
 });
@@ -552,6 +559,27 @@ function toggleFavorite(fontName) {
             selectFont(currentlySelectedFont, targetElement);
             targetElement.focus();
         }
+    }
+}
+
+// Live preview functionality
+function setupLivePreview() {
+    const checkbox = document.getElementById('livePreviewCheckbox');
+    if (checkbox) {
+        // Load saved preference
+        const saved = localStorage.getItem('fontBrowserLivePreview');
+        livePreviewEnabled = saved === 'true';
+        checkbox.checked = livePreviewEnabled;
+        
+        checkbox.addEventListener('change', (e) => {
+            livePreviewEnabled = e.target.checked;
+            localStorage.setItem('fontBrowserLivePreview', livePreviewEnabled.toString());
+            
+            // If enabled and we have a selected font, apply it immediately
+            if (livePreviewEnabled && selectedFont) {
+                ipcRenderer.send('font-browser-live-preview', selectedFont);
+            }
+        });
     }
 }
 

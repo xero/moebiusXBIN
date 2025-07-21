@@ -306,6 +306,13 @@ electron.ipcMain.on("font-browser-selection", (event, selectedFont) => {
     }
 });
 
+electron.ipcMain.on("font-browser-live-preview", (event, selectedFont) => {
+    const parentWin = event.sender.getOwnerBrowserWindow().getParentWindow();
+    if (parentWin) {
+        parentWin.webContents.send("change_font", selectedFont);
+    }
+});
+
 electron.ipcMain.on("palette-browser-selection", (event, selectedPalette) => {
     const parentWin = event.sender.getOwnerBrowserWindow().getParentWindow();
     if (parentWin) {
