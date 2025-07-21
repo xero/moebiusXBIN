@@ -4,9 +4,13 @@ const { lospec_palette } = require('../libtextmode/palette.js');
 let selectedPalette = null;
 let paletteNames = [];
 let loadedPreviews = new Map();
+let favorites = new Set();
 
 async function initializePaletteBrowser() {
     try {
+        // Load favorites from localStorage
+        loadFavorites();
+        
         // Get palette names from the lospec_palette function
         paletteNames = getPaletteNames();
         
@@ -254,16 +258,64 @@ function populatePaletteList() {
     const paletteListElement = document.getElementById('paletteList');
     paletteListElement.innerHTML = '';
     
+    // Add favorites section first if we have any
+    if (favorites.size > 0) {
+        const favoritePalettes = paletteNames.filter(name => favorites.has(name));
+        if (favoritePalettes.length > 0) {
+            // Add favorites header
+            const favoritesHeader = document.createElement('div');
+            favoritesHeader.className = 'favorites-header';
+            favoritesHeader.textContent = '★ Favorites';
+            paletteListElement.appendChild(favoritesHeader);
+            
+            // Add favorite palettes
+            favoritePalettes.forEach(paletteName => {
+                const paletteItem = createPaletteItem(paletteName, true);
+                paletteListElement.appendChild(paletteItem);
+            });
+            
+            // Add separator
+            const separator = document.createElement('div');
+            separator.className = 'favorites-separator';
+            paletteListElement.appendChild(separator);
+        }
+    }
+    
+    // Add all palettes
     paletteNames.forEach(paletteName => {
-        const paletteItem = document.createElement('div');
-        paletteItem.className = 'palette-item';
-        paletteItem.textContent = paletteName;
-        paletteItem.dataset.paletteName = paletteName;
-        paletteItem.tabIndex = 0; // Make focusable
-        paletteItem.onclick = () => selectPalette(paletteName, paletteItem);
-        paletteItem.onkeydown = (e) => handlePaletteItemKeydown(e, paletteName, paletteItem);
+        const paletteItem = createPaletteItem(paletteName, false);
         paletteListElement.appendChild(paletteItem);
     });
+}
+
+function createPaletteItem(paletteName, isFavorite = false) {
+    const paletteItem = document.createElement('div');
+    paletteItem.className = 'palette-item';
+    paletteItem.dataset.paletteName = paletteName;
+    paletteItem.tabIndex = 0; // Make focusable
+    
+    // Create palette name span
+    const paletteNameSpan = document.createElement('span');
+    paletteNameSpan.className = 'palette-name';
+    paletteNameSpan.textContent = paletteName;
+    
+    // Create star button
+    const starButton = document.createElement('button');
+    starButton.className = favorites.has(paletteName) ? 'star-button favorited' : 'star-button';
+    starButton.innerHTML = favorites.has(paletteName) ? '★' : '☆';
+    starButton.title = favorites.has(paletteName) ? 'Remove from favorites' : 'Add to favorites';
+    starButton.onclick = (e) => {
+        e.stopPropagation();
+        toggleFavorite(paletteName);
+    };
+    
+    paletteItem.appendChild(paletteNameSpan);
+    paletteItem.appendChild(starButton);
+    
+    paletteItem.onclick = () => selectPalette(paletteName, paletteItem);
+    paletteItem.onkeydown = (e) => handlePaletteItemKeydown(e, paletteName, paletteItem);
+    
+    return paletteItem;
 }
 
 async function selectPalette(paletteName, paletteElement) {
@@ -315,17 +367,17 @@ function generatePalettePreview(colors, paletteName) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // Set canvas size: 4 colors wide × 4 colors tall (16 colors total)
+        // Set canvas size: 2 colors wide × 8 colors tall (16 colors total)
         const swatchSize = 48;
-        const cols = 8;
-        const rows = 2;
+        const cols = 2;
+        const rows = 8;
         canvas.width = swatchSize * cols;
         canvas.height = swatchSize * rows;
                 
-        // Draw all 16 colors in a 4x4 grid
+        // Draw all 16 colors in a 2x8 grid (fill columns first)
         for (let i = 0; i < 16 && i < colors.length; i++) {
-            const x = (i % cols) * swatchSize;
-            const y = Math.floor(i / cols) * swatchSize;
+            const x = Math.floor(i / rows) * swatchSize;
+            const y = (i % rows) * swatchSize;
             
             // Convert hex to proper format if needed
             let color = colors[i];
@@ -436,6 +488,11 @@ function handlePaletteItemKeydown(e, paletteName, paletteElement) {
             e.preventDefault();
             selectPalette(paletteName, paletteElement);
             break;
+        case 'f':
+        case 'F':
+            e.preventDefault();
+            toggleFavorite(paletteName);
+            break;
     }
 }
 
@@ -514,6 +571,80 @@ document.addEventListener('DOMContentLoaded', () => {
     // Uncomment to enable debug menu
     // require('electron').remote.getCurrentWindow().webContents.openDevTools();
 });
+
+// Favorites management functions
+function loadFavorites() {
+    try {
+        const savedFavorites = localStorage.getItem('paletteBrowserFavorites');
+        if (savedFavorites) {
+            favorites = new Set(JSON.parse(savedFavorites));
+        }
+    } catch (error) {
+        console.error('Error loading favorites:', error);
+        favorites = new Set();
+    }
+}
+
+function saveFavorites() {
+    try {
+        localStorage.setItem('paletteBrowserFavorites', JSON.stringify([...favorites]));
+    } catch (error) {
+        console.error('Error saving favorites:', error);
+    }
+}
+
+function toggleFavorite(paletteName) {
+    console.log('Toggling favorite for:', paletteName);
+    if (favorites.has(paletteName)) {
+        favorites.delete(paletteName);
+    } else {
+        favorites.add(paletteName);
+    }
+    
+    saveFavorites();
+    
+    // Store the current focus/selection state
+    const currentlyFocusedElement = document.activeElement;
+    const currentlySelectedPalette = selectedPalette;
+    
+    // Update all star buttons for this palette
+    document.querySelectorAll(`[data-palette-name="${CSS.escape(paletteName)}"] .star-button`).forEach(button => {
+        button.innerHTML = favorites.has(paletteName) ? '★' : '☆';
+        button.title = favorites.has(paletteName) ? 'Remove from favorites' : 'Add to favorites';
+        button.className = favorites.has(paletteName) ? 'star-button favorited' : 'star-button';
+    });
+    
+    // Refresh the palette list to show/hide favorites section
+    populatePaletteList();
+    
+    // Restore selection to the same palette in the same context (not jumping to favorites)
+    if (currentlySelectedPalette) {
+        // Try to find the palette element that was originally focused
+        let targetElement = null;
+        
+        // If we were focused on a palette in the favorites section and it's still favorited,
+        // or if we were in the regular list, prefer the regular list version
+        const allMatching = document.querySelectorAll(`[data-palette-name="${CSS.escape(currentlySelectedPalette)}"]`);
+        
+        if (allMatching.length > 0) {
+            // If there are multiple instances (favorites + original), prefer non-favorites unless
+            // the user was specifically in the favorites section
+            if (allMatching.length > 1 && (!currentlyFocusedElement || 
+                !currentlyFocusedElement.closest('.palette-item')?.previousElementSibling?.classList?.contains('favorites-header'))) {
+                // Find the non-favorites version (usually the last one)
+                targetElement = allMatching[allMatching.length - 1];
+            } else {
+                // Use the first available instance
+                targetElement = allMatching[0];
+            }
+        }
+        
+        if (targetElement) {
+            selectPalette(currentlySelectedPalette, targetElement);
+            targetElement.focus();
+        }
+    }
+}
 
 // Handle window close
 window.addEventListener('beforeunload', () => {
