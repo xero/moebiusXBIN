@@ -353,6 +353,30 @@ function edit_menu_template(win, chat) {
             { type: "separator" },
             { label: "Mirror Mode", id: "mirror_mode", accelerator: "CmdorCtrl+Alt+M", click(item) { win.send("mirror_mode", item.checked); }, type: "checkbox", checked: false },
             { type: "separator" },
+            { 
+                label: "Writing Mode",
+                submenu: [
+                    {
+                        label: "Writing Direction",
+                        submenu: [
+                            { label: "Left-to-Right", id: "writing_mode_ltr", click(item) { win.send("writing_mode_ltr"); }, type: "radio", checked: true },
+                            { label: "Right-to-Left", id: "writing_mode_rtl", click(item) { win.send("writing_mode_rtl"); }, type: "radio", checked: false },
+                            { label: "Top-to-Bottom", id: "writing_mode_ttb", click(item) { win.send("writing_mode_ttb"); }, type: "radio", checked: false },
+                            { label: "Bottom-to-Top", id: "writing_mode_btt", click(item) { win.send("writing_mode_btt"); }, type: "radio", checked: false }
+                        ]
+                    },
+                    {
+                        label: "Newline Direction", 
+                        submenu: [
+                            { label: "Right (→)", id: "newline_mode_ltr", click(item) { win.send("newline_mode_ltr"); }, type: "radio", checked: false },
+                            { label: "Left (←)", id: "newline_mode_rtl", click(item) { win.send("newline_mode_rtl"); }, type: "radio", checked: false },
+                            { label: "Down (↓)", id: "newline_mode_ttb", click(item) { win.send("newline_mode_ttb"); }, type: "radio", checked: true },
+                            { label: "Up (↑)", id: "newline_mode_btt", click(item) { win.send("newline_mode_btt"); }, type: "radio", checked: false }
+                        ]
+                    }
+                ]
+            },
+            { type: "separator" },
             chat ? { label: "Cut", accelerator: "Cmd+X", role: "cut" } : { label: "Cut", id: "cut", accelerator: "CmdorCtrl+X", click(item) { win.send("cut"); }, enabled: false },
             chat ? { label: "Copy", accelerator: "Cmd+C", role: "copy" } : { label: "Copy", id: "copy", accelerator: "CmdorCtrl+C", click(item) { win.send("copy"); }, enabled: false },
             chat ? { label: "Paste", accelerator: "Cmd+V", role: "paste" } : { label: "Paste", id: "paste", accelerator: "CmdorCtrl+V", click(item) { win.send("paste"); }, enabled: true },
@@ -898,6 +922,7 @@ electron.ipcMain.on("uncheck_underneath", (event, { id }) => uncheck(id, "undern
 electron.ipcMain.on("check_underneath", (event, { id }) => check(id, "underneath"));
 electron.ipcMain.on("uncheck_over", (event, { id }) => uncheck(id, "over"));
 electron.ipcMain.on("check_over", (event, { id }) => check(id, "over"));
+
 
 electron.ipcMain.on("check_smallscale_guide", (event, { id }) => check(id, "smallscale_guide"));
 electron.ipcMain.on("check_square_guide", (event, { id }) => check(id, "square_guide"));

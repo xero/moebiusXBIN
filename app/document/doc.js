@@ -723,6 +723,40 @@ class TextModeDoc extends events.EventEmitter {
     get use_9px_font() { return doc.use_9px_font; }
     get data() { return doc.data; }
 
+    reset_newline_start_position() {
+        // Reset to default edge based on newline mode
+        this.is_typing_session = false;
+        if (this.newline_mode === "ltr") {
+            this.newline_start_position = { x: 0, y: 0 };
+        } else if (this.newline_mode === "rtl") {
+            this.newline_start_position = { x: doc.columns - 1, y: 0 };
+        } else if (this.newline_mode === "ttb") {
+            this.newline_start_position = { x: 0, y: 0 };
+        } else if (this.newline_mode === "btt") {
+            this.newline_start_position = { x: 0, y: doc.rows - 1 };
+        }
+    }
+
+    start_typing_session(x, y) {
+        // Mark the start of a typing session and set the newline start position
+        if (!this.is_typing_session) {
+            this.is_typing_session = true;
+            if (this.newline_mode === "ltr") {
+                // For rightward newlines, track the y position (row) where typing started
+                this.newline_start_position.y = y;
+            } else if (this.newline_mode === "rtl") {
+                // For leftward newlines, track the y position (row) where typing started
+                this.newline_start_position.y = y;
+            } else if (this.newline_mode === "ttb") {
+                // For downward newlines, track the x position (column) where typing started
+                this.newline_start_position.x = x;
+            } else if (this.newline_mode === "btt") {
+                // For upward newlines, track the x position (column) where typing started
+                this.newline_start_position.x = x;
+            }
+        }
+    }
+
     set_sauce(title, author, group, comments) {
         doc.title = title;
         doc.author = author;
@@ -1209,6 +1243,10 @@ class TextModeDoc extends events.EventEmitter {
         super();
         this.init = false;
         this.mirror_mode = false;
+        this.writing_mode = "ltr"; // "ltr", "rtl", "ttb", "btt"
+        this.newline_mode = "ttb"; // "ltr", "rtl", "ttb", "btt"
+        this.newline_start_position = { x: 0, y: 0 }; // tracks where new lines should start
+        this.is_typing_session = false; // tracks if we're in an active typing session
         this.undo_history = new UndoHistory();
         this.undo_history.on("resize", () => this.start_rendering());
         on("ice_colors", (event, value) => this.ice_colors = value);
@@ -1224,6 +1262,14 @@ class TextModeDoc extends events.EventEmitter {
         on("set_canvas_size", (event, { columns, rows }) => this.resize(columns, rows));
         on("set_sauce_info", (event, { title, author, group, comments }) => this.set_sauce(title, author, group, comments));
         on("mirror_mode", (event, value) => this.mirror_mode = value);
+        on("writing_mode_ltr", (event) => this.writing_mode = "ltr");
+        on("writing_mode_rtl", (event) => this.writing_mode = "rtl");
+        on("writing_mode_ttb", (event) => this.writing_mode = "ttb");
+        on("writing_mode_btt", (event) => this.writing_mode = "btt");
+        on("newline_mode_ltr", (event) => this.newline_mode = "ltr");
+        on("newline_mode_rtl", (event) => this.newline_mode = "rtl");
+        on("newline_mode_ttb", (event) => this.newline_mode = "ttb");
+        on("newline_mode_btt", (event) => this.newline_mode = "btt");
         chat.on("goto_row", (line_no) => this.emit("goto_row", line_no));
     }
 }

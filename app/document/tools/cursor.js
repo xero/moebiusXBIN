@@ -123,12 +123,43 @@ class Cursor {
 
     new_line() {
         if (this.mode != modes.EDITING) return;
-        if (keyboard.insert_mode && this.y < doc.rows - 1) {
-            this.insert_row(this.y + 1);
+        
+        // Mark this as part of the typing session
+        doc.start_typing_session(this.x, this.y);
+        
+        if (doc.newline_mode === "ltr") {
+            // New line to the right (move to next column, use tracked start y)
+            if (keyboard.insert_mode && this.x < doc.columns - 1) {
+                this.insert_column(this.x + 1);
+            }
+            const start_x = Math.min(doc.columns - 1, this.x + 1);
+            const start_y = doc.newline_start_position.y;
+            this.move_to(start_x, start_y, true, true);
+        } else if (doc.newline_mode === "rtl") {
+            // New line to the left (move to previous column, use tracked start y)
+            if (keyboard.insert_mode && this.x > 0) {
+                this.insert_column(this.x);
+            }
+            const start_x = Math.max(0, this.x - 1);
+            const start_y = doc.newline_start_position.y;
+            this.move_to(start_x, start_y, true, true);
+        } else if (doc.newline_mode === "ttb") {
+            // New line downward (move to next row, use tracked start x)
+            if (keyboard.insert_mode && this.y < doc.rows - 1) {
+                this.insert_row(this.y + 1);
+            }
+            const start_x = doc.newline_start_position.x;
+            const start_y = Math.min(doc.rows - 1, this.y + 1);
+            this.move_to(start_x, start_y, true, true);
+        } else if (doc.newline_mode === "btt") {
+            // New line upward (move to previous row, use tracked start x)
+            if (keyboard.insert_mode && this.y > 0) {
+                this.insert_row(this.y);
+            }
+            const start_x = doc.newline_start_position.x;
+            const start_y = Math.max(0, this.y - 1);
+            this.move_to(start_x, start_y, true, true);
         }
-        const old_x = this.x;
-        this.move_to(0, Math.min(doc.rows - 1, this.y + 1));
-        if (this.scroll_document_with_cursor) this.scroll(-old_x, 1);
     }
 
     reorientate_selection() {
@@ -137,9 +168,14 @@ class Cursor {
         return { sx, sy, dx, dy };
     }
 
-    move_to(x, y, scroll = true) {
+    move_to(x, y, scroll = true, from_typing = false) {
         this.x = x;
         this.y = y;
+        
+        // Reset newline start position if cursor was moved by means other than typing/newline
+        if (!from_typing) {
+            doc.reset_newline_start_position();
+        }
         switch (this.mode) {
             case modes.EDITING:
                 this.canvas.style.left = `${x * this.width}px`;
@@ -363,14 +399,46 @@ class Cursor {
         if (this.hidden || this.mode != modes.EDITING) return;
         doc.start_undo();
         if (keyboard.insert_mode) {
-            for (let x = doc.columns - 1; x > this.x; x--) {
-                const block = doc.at(x - 1, this.y);
-                doc.change_data(x, this.y, block.code, block.fg, block.bg);
+            if (doc.writing_mode === "rtl") {
+                for (let x = 0; x < this.x; x++) {
+                    const block = doc.at(x + 1, this.y);
+                    doc.change_data(x, this.y, block.code, block.fg, block.bg);
+                }
+            } else if (doc.writing_mode === "ttb") {
+                for (let y = doc.rows - 1; y > this.y; y--) {
+                    const block = doc.at(this.x, y - 1);
+                    doc.change_data(this.x, y, block.code, block.fg, block.bg);
+                }
+            } else if (doc.writing_mode === "btt") {
+                for (let y = doc.rows + 1; y < this.y; y++) {
+                    const block = doc.at(this.x, y + 1);
+                    doc.change_data(this.x, y, block.code, block.fg, block.bg);
+                }
+            } else {
+                for (let x = doc.columns - 1; x > this.x; x--) {
+                    const block = doc.at(x - 1, this.y);
+                    doc.change_data(x, this.y, block.code, block.fg, block.bg);
+                }
             }
         }
         const x = this.x;
-        if (!keyboard.overwrite_mode) this.right();
-        doc.change_data(x, this.y, code, palette.fg, palette.bg, { prev_x: x, prev_y: this.y }, this);
+        const y = this.y;
+        
+        // Mark the start of typing session (this will only set position on first character)
+        doc.start_typing_session(x, y);
+        
+        if (!keyboard.overwrite_mode) {
+            if (doc.writing_mode === "rtl") {
+                this.move_to(Math.max(0, this.x - 1), this.y, true, true);
+            } else if (doc.writing_mode === "ttb") {
+                this.move_to(this.x, Math.min(doc.rows - 1, this.y + 1), true, true);
+            } else if (doc.writing_mode === "btt") {
+                this.move_to(this.x, Math.max(0, this.y - 1), true, true);
+            } else {
+                this.move_to(Math.min(doc.columns - 1, this.x + 1), this.y, true, true);
+            }
+        }
+        doc.change_data(x, y, code, palette.fg, palette.bg, { prev_x: x, prev_y: y }, this);
         this.draw();
     }
 
@@ -380,11 +448,32 @@ class Cursor {
 
     backspace() {
         if (this.hidden || this.mode != modes.EDITING) return;
-        if (this.x > 0) {
-            doc.start_undo();
-            const x = this.x;
-            this.left();
-            doc.clear_at(x - 1, this.y, { prev_x: x, prev_y: this.y }, this);
+        doc.start_undo();
+        
+        if (doc.writing_mode === "rtl") {
+            if (this.x < doc.columns - 1) {
+                const x = this.x;
+                this.right();
+                doc.clear_at(x + 1, this.y, { prev_x: x, prev_y: this.y }, this);
+            }
+        } else if (doc.writing_mode === "ttb") {
+            if (this.y > 0) {
+                const y = this.y;
+                this.up();
+                doc.clear_at(this.x, y - 1, { prev_x: this.x, prev_y: y }, this);
+            }
+        } else if (doc.writing_mode === "btt") {
+            if (this.y < doc.rows - 1) {
+                const y = this.y;
+                this.down();
+                doc.clear_at(this.x, y + 1, { prev_x: this.x, prev_y: y }, this);
+            }
+        } else {
+            if (this.x > 0) {
+                const x = this.x;
+                this.left();
+                doc.clear_at(x - 1, this.y, { prev_x: x, prev_y: this.y }, this);
+            }
         }
     }
 
@@ -395,11 +484,26 @@ class Cursor {
             return;
         }
         doc.start_undo();
-        for (let x = this.x; x < doc.columns - 1; x++) {
-            const block = doc.at(x + 1, this.y);
-            doc.change_data(x, this.y, block.code, block.fg, block.bg);
+        
+        if (doc.writing_mode === "rtl") {
+            for (let x = this.x; x > 0; x--) {
+                const block = doc.at(x - 1, this.y);
+                doc.change_data(x, this.y, block.code, block.fg, block.bg);
+            }
+            doc.clear_at(0, this.y, { prev_x: this.x, prev_y: this.y }, this);
+        } else if (doc.writing_mode === "vertical") {
+            for (let y = this.y; y < doc.rows - 1; y++) {
+                const block = doc.at(this.x, y + 1);
+                doc.change_data(this.x, y, block.code, block.fg, block.bg);
+            }
+            doc.clear_at(this.x, doc.rows - 1, { prev_x: this.x, prev_y: this.y }, this);
+        } else {
+            for (let x = this.x; x < doc.columns - 1; x++) {
+                const block = doc.at(x + 1, this.y);
+                doc.change_data(x, this.y, block.code, block.fg, block.bg);
+            }
+            doc.clear_at(doc.columns - 1, this.y, { prev_x: this.x, prev_y: this.y }, this);
         }
-        doc.clear_at(doc.columns - 1, this.y, { prev_x: this.x, prev_y: this.y }, this);
     }
 
     start_selection() {
