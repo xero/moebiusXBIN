@@ -315,6 +315,11 @@ on("toggle_drawinggrid", (event, visible, columns) => toggle_drawinggrid(visible
 
 doc.on("render", () => rescale_guide());
 doc.on("render", () => rescale_drawinggrid());
+doc.on("render", () => {
+    if (middle_guide_active) {
+        rescale_middle_guide();
+    }
+});
 
 class StatusBar {
     status_bar_info(columns, rows, code='') {
