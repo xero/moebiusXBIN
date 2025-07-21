@@ -657,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupKeyboardNavigation();
     setupLivePreview();
     // Uncomment to enable debug menu
-    require('electron').remote.getCurrentWindow().webContents.openDevTools();
+    // require('electron').remote.getCurrentWindow().webContents.openDevTools();
 });
 
 // Favorites management functions

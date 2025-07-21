@@ -325,6 +325,13 @@ electron.ipcMain.on("palette-browser-selection", (event, selectedPalette) => {
     }
 });
 
+electron.ipcMain.on("palette-browser-live-preview", (event, selectedPalette) => {
+    const parentWin = event.sender.getOwnerBrowserWindow().getParentWindow();
+    if (parentWin) {
+        parentWin.webContents.send("change_palette", selectedPalette);
+    }
+});
+
 electron.ipcMain.on("chat_input_focus", (event, { id }) => {
     if (darwin) electron.Menu.setApplicationMenu(docs[id].chat_input_menu);
 });

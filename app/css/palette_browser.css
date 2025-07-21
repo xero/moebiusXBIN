@@ -24,6 +24,35 @@ body {
     display: flex;
     width: 100vw;
     height: 100vh;
+    -webkit-app-region: drag;
+}
+
+.palette-sidebar {
+    width: 120px;
+    background: var(--dark-view-color);
+    border-right: 1px solid var(--border-color);
+    padding: 8px;
+    overflow-y: auto;
+}
+
+.palette-sidebar .live-preview-sidebar {
+    margin-top: 16px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+.palette-sidebar .live-preview-sidebar label {
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.palette-sidebar .live-preview-sidebar input[type="checkbox"] {
+    margin-right: 6px;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
 }
 
 .palette-list {
@@ -31,6 +60,7 @@ body {
     background: var(--dark-mid-color);
     border-right: 1px solid var(--border-color);
     overflow-y: auto;
+    -webkit-app-region: no-drag;
 }
 
 .palette-preview {
@@ -39,6 +69,7 @@ body {
     display: flex;
     flex-direction: column;
     padding: 16px;
+    -webkit-app-region: no-drag;
 }
 
 .palette-item {
@@ -187,4 +218,10 @@ body {
 .btn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+}
+kbd {
+    border-radius: 2px;
+    background: #aaa;
+    padding: 2px 4px;
+    color: black;
 }

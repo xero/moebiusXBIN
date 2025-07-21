@@ -5,6 +5,7 @@ let selectedPalette = null;
 let paletteNames = [];
 let loadedPreviews = new Map();
 let favorites = new Set();
+let livePreviewEnabled = false;
 
 async function initializePaletteBrowser() {
     try {
@@ -334,6 +335,11 @@ async function selectPalette(paletteName, paletteElement) {
     
     // Load and display palette preview
     await loadPalettePreview(paletteName);
+    
+    // If live preview is enabled, apply palette to main canvas
+    if (livePreviewEnabled) {
+        ipcRenderer.send('palette-browser-live-preview', paletteName);
+    }
 }
 
 async function loadPalettePreview(paletteName) {
@@ -564,10 +570,32 @@ function setupKeyboardNavigation() {
     });
 }
 
+// Live preview functionality
+function setupLivePreview() {
+    const checkbox = document.getElementById('livePreviewCheckbox');
+    if (checkbox) {
+        // Load saved preference
+        const saved = localStorage.getItem('paletteBrowserLivePreview');
+        livePreviewEnabled = saved === 'true';
+        checkbox.checked = livePreviewEnabled;
+        
+        checkbox.addEventListener('change', (e) => {
+            livePreviewEnabled = e.target.checked;
+            localStorage.setItem('paletteBrowserLivePreview', livePreviewEnabled.toString());
+            
+            // If enabled and we have a selected palette, apply it immediately
+            if (livePreviewEnabled && selectedPalette) {
+                ipcRenderer.send('palette-browser-live-preview', selectedPalette);
+            }
+        });
+    }
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     initializePaletteBrowser();
     setupKeyboardNavigation();
+    setupLivePreview();
     // Uncomment to enable debug menu
     // require('electron').remote.getCurrentWindow().webContents.openDevTools();
 });
