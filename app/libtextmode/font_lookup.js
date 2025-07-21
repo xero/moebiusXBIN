@@ -1015,7 +1015,7 @@ function lookup_url(font_name) {
     case "WINDOWS (8x9)": return "../fonts/viler/WINDOWS.F09";
     case "WINDOWS (8x8)": return "../fonts/viler/WINDOWS.F08";
     case "THIN (8x10)": return "../fonts/viler/THIN.F10";
-    case "SCRWL (8x16)~~~": return "../fonts/viler/SCRWL.F16";
+    case "SCRWL1 (8x16)": return "../fonts/viler/SCRWL1.F16";
     case "SCRIPT2 (8x19)": return "../fonts/viler/SCRIPT2.F19";
     case "SCRIPT2 (8x14)": return "../fonts/viler/SCRIPT2.F14";
     case "SCRIPT2 (8x9)": return "../fonts/viler/SCRIPT2.F09";
@@ -1785,7 +1785,7 @@ function lookup_url(font_name) {
     case "SMCAPNUM (8x14)": return "../fonts/viler/SMCAPNUM.F14";
     case "SLANT2 (8x14)": return "../fonts/viler/SLANT2.F14";
     case "SECURITY (8x14)": return "../fonts/viler/SECURITY.F14";
-    case "SCRWL (8x16)---": return "../fonts/viler/SCRWL.F16";
+    case "SCRWL2 (8x16)": return "../fonts/viler/SCRWL2.F16";
     case "SCRAWL2 (8x16)": return "../fonts/viler/SCRAWL2.F16";
     case "SANSERIX (8x16)": return "../fonts/viler/SANSERIX.F16";
     case "SANSERIF (8x16)": return "../fonts/viler/SANSERIF.F16";

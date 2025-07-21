@@ -4,11 +4,15 @@ const { Font } = require('../libtextmode/font.js');
 let selectedFont = null;
 let fontLists = {};
 let loadedPreviews = new Map();
+let favorites = new Set();
 
 // We'll display the font as a character grid (16x16 = 256 characters)
 
 async function initializeFontBrowser() {
     try {
+        // Load favorites from localStorage
+        loadFavorites();
+        
         // Get font lists from main process
         fontLists = await ipcRenderer.invoke('get-font-lists');
         
@@ -28,6 +32,28 @@ async function initializeFontBrowser() {
 function populateFontList() {
     const fontListElement = document.getElementById('fontList');
     fontListElement.innerHTML = '';
+    
+    // Add favorites category first if we have any
+    if (favorites.size > 0) {
+        const favoritesFonts = {};
+        // Collect all favorite fonts from all categories
+        [fontLists.standard, fontLists.viler, fontLists.custom].forEach(fontList => {
+            if (fontList) {
+                Object.keys(fontList).forEach(categoryName => {
+                    Object.keys(fontList[categoryName]).forEach(fontName => {
+                        if (favorites.has(fontName)) {
+                            favoritesFonts[fontName] = fontList[categoryName][fontName];
+                        }
+                    });
+                });
+            }
+        });
+        
+        if (Object.keys(favoritesFonts).length > 0) {
+            const favoritesCategory = createFontCategory('★ Favorites', favoritesFonts, true);
+            fontListElement.appendChild(favoritesCategory);
+        }
+    }
     
     // Add standard fonts
     if (fontLists.standard) {
@@ -54,7 +80,7 @@ function populateFontList() {
     }
 }
 
-function createFontCategory(categoryName, fonts) {
+function createFontCategory(categoryName, fonts, isFavoritesCategory = false) {
     const detailsElement = document.createElement('details');
     detailsElement.className = 'font-category';
     detailsElement.open = true; // Start expanded
@@ -64,12 +90,29 @@ function createFontCategory(categoryName, fonts) {
     summaryElement.textContent = categoryName;
     
     Object.keys(fonts).forEach(fontName => {
-        const fontHeight = fonts[fontName];
         const fontItem = document.createElement('div');
         fontItem.className = 'font-item';
-        fontItem.textContent = `${fontName} (8×${fontHeight})`;
         fontItem.dataset.fontName = fontName;
         fontItem.tabIndex = 0; // Make focusable
+        
+        // Create font name span
+        const fontNameSpan = document.createElement('span');
+        fontNameSpan.className = 'font-name';
+        fontNameSpan.textContent = `${fontName}`;
+        
+        // Create star button
+        const starButton = document.createElement('button');
+        starButton.className = favorites.has(fontName) ? 'star-button favorited' : 'star-button';
+        starButton.innerHTML = favorites.has(fontName) ? '★' : '☆';
+        starButton.title = favorites.has(fontName) ? 'Remove from favorites' : 'Add to favorites';
+        starButton.onclick = (e) => {
+            e.stopPropagation();
+            toggleFavorite(fontName);
+        };
+        
+        fontItem.appendChild(fontNameSpan);
+        fontItem.appendChild(starButton);
+        
         fontItem.onclick = () => selectFont(fontName, fontItem);
         fontItem.onkeydown = (e) => handleFontItemKeydown(e, fontName, fontItem);
         detailsElement.appendChild(fontItem);
@@ -229,6 +272,11 @@ function handleFontItemKeydown(e, fontName, fontElement) {
         case ' ':
             e.preventDefault();
             selectFont(fontName, fontElement);
+            break;
+        case 'f':
+        case 'F':
+            e.preventDefault();
+            toggleFavorite(fontName);
             break;
     }
 }
@@ -396,6 +444,14 @@ function setupKeyboardNavigation() {
                         loadSelectedFont();
                     }
                     break;
+                case 'f':
+                case 'F':
+                    e.preventDefault();
+                    // Toggle favorite for currently selected font
+                    if (selectedFont) {
+                        toggleFavorite(selectedFont);
+                    }
+                    break;
             }
         }
     });
@@ -422,7 +478,82 @@ function setupKeyboardNavigation() {
 document.addEventListener('DOMContentLoaded', () => {
     initializeFontBrowser();
     setupKeyboardNavigation();
+    // Uncomment to enable debug menu
+    //require('electron').remote.getCurrentWindow().webContents.openDevTools();
 });
+
+// Favorites management functions
+function loadFavorites() {
+    try {
+        const savedFavorites = localStorage.getItem('fontBrowserFavorites');
+        if (savedFavorites) {
+            favorites = new Set(JSON.parse(savedFavorites));
+        }
+    } catch (error) {
+        console.error('Error loading favorites:', error);
+        favorites = new Set();
+    }
+}
+
+function saveFavorites() {
+    try {
+        localStorage.setItem('fontBrowserFavorites', JSON.stringify([...favorites]));
+    } catch (error) {
+        console.error('Error saving favorites:', error);
+    }
+}
+
+function toggleFavorite(fontName) {
+    if (favorites.has(fontName)) {
+        favorites.delete(fontName);
+    } else {
+        favorites.add(fontName);
+    }
+    
+    saveFavorites();
+    
+    // Store the current focus/selection state
+    const currentlyFocusedElement = document.activeElement;
+    const currentlySelectedFont = selectedFont;
+    
+    // Update all star buttons for this font
+    document.querySelectorAll(`[data-font-name="${fontName}"] .star-button`).forEach(button => {
+        button.innerHTML = favorites.has(fontName) ? '★' : '☆';
+        button.title = favorites.has(fontName) ? 'Remove from favorites' : 'Add to favorites';
+        button.className = favorites.has(fontName) ? 'star-button favorited' : 'star-button';
+    });
+    
+    // Refresh the font list to show/hide favorites category
+    populateFontList();
+    
+    // Restore selection to the same font in the same context (not jumping to favorites)
+    if (currentlySelectedFont) {
+        // Try to find the font element that was originally focused
+        let targetElement = null;
+        
+        // If we were focused on a font in the favorites category and it's still favorited,
+        // or if we were in a regular category, prefer the regular category version
+        const allMatching = document.querySelectorAll(`[data-font-name="${currentlySelectedFont}"]`);
+        
+        if (allMatching.length > 0) {
+            // If there are multiple instances (favorites + original), prefer non-favorites unless
+            // the user was specifically in the favorites category
+            if (allMatching.length > 1 && (!currentlyFocusedElement || 
+                !currentlyFocusedElement.closest('.font-category')?.querySelector('.category-header')?.textContent?.includes('★'))) {
+                // Find the non-favorites version (skip the first one which would be favorites)
+                targetElement = allMatching[1];
+            } else {
+                // Use the first available instance
+                targetElement = allMatching[0];
+            }
+        }
+        
+        if (targetElement) {
+            selectFont(currentlySelectedFont, targetElement);
+            targetElement.focus();
+        }
+    }
+}
 
 // Handle window close
 window.addEventListener('beforeunload', () => {
