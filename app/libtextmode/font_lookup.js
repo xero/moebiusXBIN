@@ -160,6 +160,8 @@ function lookup_url(font_name) {
     case "Amiga MicroKnight": return "../fonts/amiga/MicroKnight.F16";
     case "Amiga MicroKnight+": return "../fonts/amiga/MicroKnightPlus.F16";
     case "Amiga mOsOul": return "../fonts/amiga/mO'sOul.F16";
+    case "C64 PETSCII unshifted": return "../fonts/c64/PETSCII unshifted.F08";
+    case "C64 PETSCII shifted": return "../fonts/c64/PETSCII shifted.F08";
     case "Atari ATASCII": return "../fonts/atari/atascii.F08";
     //VILERS LIST
     case "THIN (8x8)": return "../fonts/viler/THIN.F08";
@@ -2585,7 +2587,10 @@ function lookup_url(font_name) {
     case "zom_2x (8x16)": return "../fonts/discmaster/zom_2x.f16";
     case "zom (8x8)": return "../fonts/discmaster/zom.f08";
 
-    default: return "../fonts/ibm/CP437.F16";
+    default: { 
+      console.log(font_name + 'defaulted') 
+      return "../fonts/ibm/CP437.F16"
+    };
   }
 }
 

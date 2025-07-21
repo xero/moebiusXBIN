@@ -6,6 +6,7 @@ let fontLists = {};
 let loadedPreviews = new Map();
 let favorites = new Set();
 let livePreviewEnabled = false;
+let sizeFilters = new Set();
 
 // We'll display the font as a character grid (16x16 = 256 characters)
 
@@ -22,12 +23,160 @@ async function initializeFontBrowser() {
             return;
         }
         
+        populateSizeFilters();
         populateFontList();
         selectFirstFont();
         
     } catch (error) {
         console.error('Error initializing font browser:', error);
     }
+}
+
+function populateSizeFilters() {
+    const sizeFilterElement = document.getElementById('sizeFilterOptions');
+    sizeFilterElement.innerHTML = '';
+    
+    // Collect all unique font sizes
+    const allSizes = new Set();
+    
+    [fontLists.standard, fontLists.viler, fontLists.custom].forEach(fontList => {
+        if (fontList) {
+            Object.values(fontList).forEach(category => {
+                Object.values(category).forEach(size => {
+                    if (typeof size === 'number') {
+                        allSizes.add(size);
+                    }
+                });
+            });
+        }
+    });
+    
+    // Sort sizes numerically
+    const sortedSizes = Array.from(allSizes).sort((a, b) => a - b);
+    
+    // Create checkboxes for each size
+    sortedSizes.forEach(size => {
+        const sizeOption = document.createElement('label');
+        sizeOption.className = 'size-option';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = size.toString();
+        checkbox.checked = true; // All sizes selected by default
+        checkbox.addEventListener('change', handleSizeFilterChange);
+        
+        const label = document.createElement('span');
+        label.textContent = `${size}px`;
+        
+        sizeOption.appendChild(checkbox);
+        sizeOption.appendChild(label);
+        sizeFilterElement.appendChild(sizeOption);
+        
+        sizeFilters.add(size);
+    });
+    
+    // Add event listener for toggle all button
+    const toggleAllBtn = document.getElementById('toggleAllBtn');
+    if (toggleAllBtn) {
+        toggleAllBtn.addEventListener('click', toggleAllSizes);
+        updateToggleButtonText(); // Set initial button text
+    }
+}
+
+function toggleAllSizes() {
+    const checkboxes = document.querySelectorAll('#sizeFilterOptions input[type="checkbox"]');
+    const checkedCount = document.querySelectorAll('#sizeFilterOptions input[type="checkbox"]:checked').length;
+    
+    if (checkedCount === 0) {
+        // If none are checked, check all
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        
+        // Rebuild size filters set
+        sizeFilters.clear();
+        checkboxes.forEach(checkbox => {
+            sizeFilters.add(parseInt(checkbox.value));
+        });
+        
+        // Update font list
+        populateFontList();
+        selectFirstFont();
+        
+    } else {
+        // If any are checked, uncheck all
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Clear size filters
+        sizeFilters.clear();
+        
+        // Update font list (will show no fonts since no sizes are selected)
+        populateFontList();
+        
+        // Clear selection since no fonts are visible
+        selectedFont = null;
+        document.getElementById('loadFontBtn').disabled = true;
+        document.getElementById('previewTitle').textContent = 'No fonts match the current filters';
+        document.getElementById('previewInfo').textContent = '';
+        document.getElementById('previewContent').innerHTML = '';
+    }
+    
+    updateToggleButtonText();
+}
+
+function updateToggleButtonText() {
+    const toggleAllBtn = document.getElementById('toggleAllBtn');
+    const checkedCount = document.querySelectorAll('#sizeFilterOptions input[type="checkbox"]:checked').length;
+    
+    if (toggleAllBtn) {
+        toggleAllBtn.textContent = checkedCount === 0 ? 'Check all' : 'Uncheck all';
+    }
+}
+
+function handleSizeFilterChange() {
+    // Update sizeFilters set based on checked checkboxes
+    sizeFilters.clear();
+    
+    document.querySelectorAll('#sizeFilterOptions input[type="checkbox"]:checked').forEach(checkbox => {
+        sizeFilters.add(parseInt(checkbox.value));
+    });
+    
+    // Repopulate font list with current filters
+    populateFontList();
+    
+    // Reselect first font if current selection is filtered out
+    if (selectedFont && !isFontVisible(selectedFont)) {
+        selectFirstFont();
+    }
+    
+    // Update toggle button text
+    updateToggleButtonText();
+}
+
+function isFontVisible(fontName) {
+    // Check if font matches current size filters
+    const fontSize = getFontSize(fontName);
+    return fontSize !== null && sizeFilters.has(fontSize);
+}
+
+function getFontSize(fontName) {
+    // Search for font size in all font lists
+    const searchInList = (fontList) => {
+        if (!fontList) return null;
+        
+        for (const category of Object.values(fontList)) {
+            if (category[fontName] !== undefined) {
+                return category[fontName];
+            }
+        }
+        return null;
+    };
+    
+    return searchInList(fontLists.standard) || 
+           searchInList(fontLists.viler) || 
+           searchInList(fontLists.custom);
 }
 
 function populateFontList() {
@@ -52,7 +201,9 @@ function populateFontList() {
         
         if (Object.keys(favoritesFonts).length > 0) {
             const favoritesCategory = createFontCategory('★ Favorites', favoritesFonts, true);
-            fontListElement.appendChild(favoritesCategory);
+            if (favoritesCategory) {
+                fontListElement.appendChild(favoritesCategory);
+            }
         }
     }
     
@@ -60,7 +211,9 @@ function populateFontList() {
     if (fontLists.standard) {
         Object.keys(fontLists.standard).forEach(categoryName => {
             const categoryDiv = createFontCategory(categoryName, fontLists.standard[categoryName]);
-            fontListElement.appendChild(categoryDiv);
+            if (categoryDiv) {
+                fontListElement.appendChild(categoryDiv);
+            }
         });
     }
     
@@ -68,7 +221,9 @@ function populateFontList() {
     if (fontLists.viler) {
         Object.keys(fontLists.viler).forEach(categoryName => {
             const categoryDiv = createFontCategory(`Viler's ${categoryName}`, fontLists.viler[categoryName]);
-            fontListElement.appendChild(categoryDiv);
+            if (categoryDiv) {
+                fontListElement.appendChild(categoryDiv);
+            }
         });
     }
 
@@ -76,7 +231,9 @@ function populateFontList() {
     if (fontLists.custom) {
         Object.keys(fontLists.custom).forEach(categoryName => {
             const categoryDiv = createFontCategory(`${categoryName}`, fontLists.custom[categoryName]);
-            fontListElement.appendChild(categoryDiv);
+            if (categoryDiv) {
+                fontListElement.appendChild(categoryDiv);
+            }
         });
     }
 }
@@ -90,7 +247,16 @@ function createFontCategory(categoryName, fonts, isFavoritesCategory = false) {
     summaryElement.className = 'category-header';
     summaryElement.textContent = categoryName;
     
+    let hasVisibleFonts = false;
+    
     Object.keys(fonts).forEach(fontName => {
+        // Apply size filtering
+        if (!isFontVisible(fontName)) {
+            return; // Skip this font if it doesn't match size filters
+        }
+        
+        hasVisibleFonts = true;
+        
         const fontItem = document.createElement('div');
         fontItem.className = 'font-item';
         fontItem.dataset.fontName = fontName;
@@ -120,6 +286,11 @@ function createFontCategory(categoryName, fonts, isFavoritesCategory = false) {
     });
     
     detailsElement.insertBefore(summaryElement, detailsElement.firstChild);
+    
+    // Only return the category if it has visible fonts
+    if (!hasVisibleFonts) {
+        return null;
+    }
     
     return detailsElement;
 }
@@ -486,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupKeyboardNavigation();
     setupLivePreview();
     // Uncomment to enable debug menu
-    //require('electron').remote.getCurrentWindow().webContents.openDevTools();
+    require('electron').remote.getCurrentWindow().webContents.openDevTools();
 });
 
 // Favorites management functions
