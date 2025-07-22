@@ -439,6 +439,10 @@ class Cursor {
             }
         }
         doc.change_data(x, y, code, palette.fg, palette.bg, { prev_x: x, prev_y: y }, this);
+        
+        // Apply contextual shaping
+        libtextmode.encoding_manager.apply_contextual_shaping(doc, x, y);
+        
         this.draw();
     }
 

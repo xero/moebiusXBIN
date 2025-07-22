@@ -21,6 +21,7 @@ const default_values = {
     use_backup: false,
     backup_folder: "",
     use_9px_font: false,
+    encoding: "CP437",
     fkeys: [ // Stolen mercilously from Pablo, thanks Curtis!
         [218, 191, 192, 217, 196, 179, 195, 180, 193, 194, 32, 32],
         [201, 187, 200, 188, 205, 186, 204, 185, 202, 203, 32, 32],

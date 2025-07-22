@@ -8,6 +8,7 @@ const path = require("path");
 const { open_box } = require("../senders");
 const { current_date, resize_canvas, Textmode } = require("./textmode");
 const { cp437_to_unicode, cp437_to_unicode_bytes, unicode_to_cp437 } = require("./encodings");
+const encoding_manager = require("./encoding_manager");
 const fs = require("fs");
 const upng = require("upng-js");
 const { getSync } = require("@andreekeberg/imagedata");
@@ -800,4 +801,4 @@ function splitToBulks(arr, bulkSize) {
     return bulks;
 }
 
-module.exports = { Font, read_bytes, read_file, export_font, load_custom_font, importFontFromImage, getImageData, rearrangeBitArray, processImageDataTo1bit, write_file, animate, render, render_split, render_at, render_insert_column, render_delete_column, render_insert_row, render_delete_row, new_document, clone_document, resize_canvas, cp437_to_unicode, cp437_to_unicode_bytes, unicode_to_cp437, render_blocks, merge_blocks, flip_code_x, flip_x, flip_y, rotate, insert_column, insert_row, delete_column, delete_row, scroll_canvas_up, scroll_canvas_down, scroll_canvas_left, scroll_canvas_right, render_scroll_canvas_up, render_scroll_canvas_down, render_scroll_canvas_left, render_scroll_canvas_right, get_data_url, compress, uncompress, get_blocks, get_all_blocks, export_as_png, export_as_apng, encode_as_bin, encode_as_xbin, encode_as_ansi, remove_ice_colors };
+module.exports = { Font, read_bytes, read_file, export_font, load_custom_font, importFontFromImage, getImageData, rearrangeBitArray, processImageDataTo1bit, write_file, animate, render, render_split, render_at, render_insert_column, render_delete_column, render_insert_row, render_delete_row, new_document, clone_document, resize_canvas, cp437_to_unicode, cp437_to_unicode_bytes, unicode_to_cp437, encoding_manager, render_blocks, merge_blocks, flip_code_x, flip_x, flip_y, rotate, insert_column, insert_row, delete_column, delete_row, scroll_canvas_up, scroll_canvas_down, scroll_canvas_left, scroll_canvas_right, render_scroll_canvas_up, render_scroll_canvas_down, render_scroll_canvas_left, render_scroll_canvas_right, get_data_url, compress, uncompress, get_blocks, get_all_blocks, export_as_png, export_as_apng, encode_as_bin, encode_as_xbin, encode_as_ansi, remove_ice_colors };

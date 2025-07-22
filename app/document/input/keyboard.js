@@ -326,7 +326,7 @@ class KeyboardEvent extends events.EventEmitter {
                 break;
         }
         if (event.key.length == 1) {
-            const code = libtextmode.unicode_to_cp437(event.key.charCodeAt(0));
+            const code = libtextmode.encoding_manager.unicode_to_encoding(event.key.charCodeAt(0));
             if (code == 32) event.preventDefault();
             if (code) this.emit("key_typed", code);
         }
@@ -364,6 +364,9 @@ class KeyboardEvent extends events.EventEmitter {
         on("overwrite_mode", (event, value) => this.overwrite_mode = value);
         on("q_key_insert", (event, value) => this.q_key_insert = value);
         on("f_key", (event, value) => this.emit("f_key", value));
+        on("change_encoding", (event, encoding) => {
+            libtextmode.encoding_manager.set_encoding(encoding);
+        });
         document.addEventListener("DOMContentLoaded", () => {
             this.chat_input = document.getElementById("chat_input");
             document.body.addEventListener("keydown", (event) => this.keydown(event), true);
@@ -372,5 +375,8 @@ class KeyboardEvent extends events.EventEmitter {
 }
 
 on("use_shift", (event, value) => use_shift = value);
+on("encoding", (event, value) => {
+    libtextmode.encoding_manager.set_encoding(value);
+});
 
 module.exports = new KeyboardEvent();

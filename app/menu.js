@@ -6,6 +6,7 @@ const chat_menus = [];
 const font_names = [];
 // Import font lists from centralized registry
 const { font_list, viler_font_list, custom_font_list } = require("./font_registry");
+const { AVAILABLE_ENCODINGS, get_encoding_description } = require("./libtextmode/encoding_manager");
 const lospec_palette_names = [];
 const lospec_palette_list = {
     "Isolated16": "Isolated16",
@@ -330,11 +331,7 @@ function file_menu_template(win) {
             { type: "separator" },
             { label: "Export As PNG\u2026", id: "export_as_png", accelerator: "CmdorCtrl+Shift+E", click(item) { win.send("export_as_png"); } },
             { label: "Export As Animated PNG\u2026", id: "export_as_apng", accelerator: "CmdorCtrl+Shift+A", click(item) { win.send("export_as_apng"); } },
-            { type: "separator" },
             { label: "Export As UTF-8\u2026", id: "export_as_utf8", accelerator: "CmdorCtrl+Shift+U", click(item) { win.send("export_as_utf8"); } },
-            { type: "separator" },
-            { label: "Save F-Key Character Sets\u2026", id: "save_fkey_sets", click(item) { win.send("save_fkey_sets"); } },
-            { label: "Load F-Key Character Sets\u2026", id: "load_fkey_sets", click(item) { win.send("load_fkey_sets"); } },
             { type: "separator" },
             { role: "close", accelerator: darwin ? "Cmd+W" : "Alt+F4" }
         ]
@@ -351,31 +348,7 @@ function edit_menu_template(win, chat) {
             { label: "Toggle Insert Mode", id: "toggle_insert_mode", accelerator: darwin ? "" : "Insert", type: "checkbox", click(item) { win.send("insert_mode", item.checked); }, checked: false },
             { label: "Toggle Overwrite Mode", id: "overwrite_mode", accelerator: "CmdorCtrl+Alt+O", click(item) { win.send("overwrite_mode", item.checked); }, type: "checkbox", checked: false },
             { type: "separator" },
-            { label: "Mirror Mode", id: "mirror_mode", accelerator: "CmdorCtrl+Alt+M", click(item) { win.send("mirror_mode", item.checked); }, type: "checkbox", checked: false },
-            { type: "separator" },
-            { 
-                label: "Writing Mode",
-                submenu: [
-                    {
-                        label: "Writing Direction",
-                        submenu: [
-                            { label: "Left-to-Right", id: "writing_mode_ltr", click(item) { win.send("writing_mode_ltr"); }, type: "radio", checked: true },
-                            { label: "Right-to-Left", id: "writing_mode_rtl", click(item) { win.send("writing_mode_rtl"); }, type: "radio", checked: false },
-                            { label: "Top-to-Bottom", id: "writing_mode_ttb", click(item) { win.send("writing_mode_ttb"); }, type: "radio", checked: false },
-                            { label: "Bottom-to-Top", id: "writing_mode_btt", click(item) { win.send("writing_mode_btt"); }, type: "radio", checked: false }
-                        ]
-                    },
-                    {
-                        label: "Newline Direction", 
-                        submenu: [
-                            { label: "Right (→)", id: "newline_mode_ltr", click(item) { win.send("newline_mode_ltr"); }, type: "radio", checked: false },
-                            { label: "Left (←)", id: "newline_mode_rtl", click(item) { win.send("newline_mode_rtl"); }, type: "radio", checked: false },
-                            { label: "Down (↓)", id: "newline_mode_ttb", click(item) { win.send("newline_mode_ttb"); }, type: "radio", checked: true },
-                            { label: "Up (↑)", id: "newline_mode_btt", click(item) { win.send("newline_mode_btt"); }, type: "radio", checked: false }
-                        ]
-                    }
-                ]
-            },
+            { label: "Mirror Mode", id: "mirror_mode", accelerator: "CmdorCtrl+Alt+M", click(item) { win.send("mirror_mode", item.checked); }, type: "checkbox", checked: false },            
             { type: "separator" },
             chat ? { label: "Cut", accelerator: "Cmd+X", role: "cut" } : { label: "Cut", id: "cut", accelerator: "CmdorCtrl+X", click(item) { win.send("cut"); }, enabled: false },
             chat ? { label: "Copy", accelerator: "Cmd+C", role: "copy" } : { label: "Copy", id: "copy", accelerator: "CmdorCtrl+C", click(item) { win.send("copy"); }, enabled: false },
@@ -443,41 +416,6 @@ function selection_menu_template(win, chat) {
     };
 }
 
-function lospec_palette_menu_items(win) {
-    return Object.keys(lospec_palette_list).map((lospec_palette_name) => {
-        return { label: lospec_palette_name, id: lospec_palette_name, click(item) { win.send("change_palette", lospec_palette_name); }, type: "checkbox", checked: false };
-    });
-}
-
-function viler_font_menu_items(win) {
-    return Object.keys(viler_font_list).map((menu_title) => {
-        return {
-            label: menu_title, submenu: Object.keys(viler_font_list[menu_title]).map((font_name) => {
-                return { label: font_name, id: font_name, click(item) { win.send("change_font", font_name); }, type: "checkbox", checked: false };
-            })
-        };
-    });
-}
-
-function custom_font_menu_items(win) {
-    return Object.keys(custom_font_list).map((menu_title) => {
-        return {
-            label: menu_title, submenu: Object.keys(custom_font_list[menu_title]).map((font_name) => {
-                return { label: font_name, id: font_name, click(item) { win.send("change_font", font_name); }, type: "checkbox", checked: false };
-            })
-        };
-    });
-}
-
-function font_menu_items(win) {
-    return Object.keys(font_list).map((menu_title) => {
-        return {
-            label: menu_title, submenu: Object.keys(font_list[menu_title]).map((font_name) => {
-                return { label: `${font_name} (8×${font_list[menu_title][font_name]})`, id: font_name, click(item) { win.send("change_font", font_name); }, type: "checkbox", checked: false };
-            })
-        };
-    });
-}
 
 function view_menu_template(win) {
     return {
@@ -495,6 +433,10 @@ function view_menu_template(win) {
             { label: "Previous Character Set", id: "previous_character_set", accelerator: "Ctrl+,", click(item) { win.send("previous_character_set"); }, enabled: true },
             { label: "Next Character Set", id: "next_character_set", accelerator: "Ctrl+.", click(item) { win.send("next_character_set"); }, enabled: true },
             { label: "Default Character Set", id: "default_character_set", accelerator: "Ctrl+/", click(item) { win.send("default_character_set"); }, enabled: true },
+            { label: "Save F-Key Character Sets\u2026", id: "save_fkey_sets", click(item) { win.send("save_fkey_sets"); } },
+            { label: "Load F-Key Character Sets\u2026", id: "load_fkey_sets", click(item) { win.send("load_fkey_sets"); } },
+            { type: "separator" },
+            { label: "Show Character List", id: "show_charlist", accelerator: "CmdorCtrl+Alt+L", click(item) { win.send("show_charlist", item.checked); }, type: "checkbox", checked: true },
             { type: "separator" },
             { label: "Increase Brush Size", id: "increase_brush_size", accelerator: "Alt+=", click(item) { win.send("increase_brush_size"); }, enabled: false },
             { label: "Decrease Brush Size", id: "decrease_brush_size", accelerator: "Alt+-", click(item) { win.send("decrease_brush_size"); }, enabled: false },
@@ -538,32 +480,6 @@ function view_menu_template(win) {
     };
 }
 
-function font_menu_template(win) {
-    return {
-        label: "&Font",
-        submenu: [
-            { label: "Font Browser\u2026", id: "font_browser", accelerator: "CmdorCtrl+Shift+F", click(item) { win.send("open_font_browser"); } },
-            { label: "Change Font (Default)", submenu: font_menu_items(win) },
-            { label: "Change Font (Viler's VGA textmode fonts)", submenu: viler_font_menu_items(win) },
-            { label: "Change Font (Custom & DiscMaster Amiga)", submenu: custom_font_menu_items(win) },
-            { type: "separator" },
-            { label: "Load Custom Font\u2026", id: "loadcustomfont", click(item) { win.send("load_custom_font"); } },
-            { label: "Reset to default font\u2026", id: "resetxbinfont", click(item) { win.send("change_font", "IBM VGA"); } },
-            { label: "Export font\u2026", id: "export_font", click(item) { win.send("export_font"); } },
-            { label: "Import font from image (GIF/PNG)\u2026", id: "import_font", click(item) { win.send("import_font"); } },
-            { type: "separator" },
-            { label: "Show Character List", id: "show_charlist", accelerator: "CmdorCtrl+Alt+L", click(item) { win.send("show_charlist", item.checked); }, type: "checkbox", checked: true },
-            { type: "separator" },
-            { label: "Toggle Q-Key Inserts Selected Character", id: "q_key_insert", accelerator: "CmdorCtrl+Alt+F", type: "checkbox", click(item) { win.send("q_key_insert", item.checked); }, checked: false },
-            { label: "Toggle Clicking on Character List Maps Function Keys", id: "charlist_fkey_mapping", type: "checkbox", click(item) { win.send("toggle_charlist_fkey_mapping", item.checked); }, checked: false },
-            { type: "separator" },
-            { label: "Use Character Under Cursor", id: "use_character_under_cursor", accelerator: "Alt+F", click(item) { win.send("use_character_under_cursor"); } },
-            { type: "separator" },
-            { label: "Use 9px Font", id: "use_9px_font", accelerator: "CmdorCtrl+F", click(item) { win.send("use_9px_font", item.checked); }, type: "checkbox", checked: false },
-        ]
-    };
-}
-
 function colors_menu_template(win) {
     return {
         label: "Colors",
@@ -593,6 +509,67 @@ function colors_menu_template(win) {
     };
 }
 
+function font_menu_template(win) {
+    return {
+        label: "&Font",
+        submenu: [
+            { label: "Font Browser\u2026", id: "font_browser", accelerator: "CmdorCtrl+Shift+F", click(item) { win.send("open_font_browser"); } },
+            { label: "Change Font (Default)", submenu: font_menu_items(win) },
+            { label: "Change Font (Viler's VGA textmode fonts)", submenu: viler_font_menu_items(win) },
+            { label: "Change Font (Custom & DiscMaster Amiga)", submenu: custom_font_menu_items(win) },
+            { label: "Reset to default font\u2026", id: "resetxbinfont", click(item) { win.send("change_font", "IBM VGA"); } },
+            { type: "separator" },
+            { label: "Load Custom Font\u2026", id: "loadcustomfont", click(item) { win.send("load_custom_font"); } },
+            { label: "Export font\u2026", id: "export_font", click(item) { win.send("export_font"); } },
+            { label: "Import font from image (GIF/PNG)\u2026", id: "import_font", click(item) { win.send("import_font"); } },
+            { type: "separator" },
+            { label: "Use 9px Font", id: "use_9px_font", accelerator: "CmdorCtrl+F", click(item) { win.send("use_9px_font", item.checked); }, type: "checkbox", checked: false },
+        ]
+    };
+}
+
+function text_menu_template(win) {
+    return {
+        label: "&Text",
+        submenu: [
+            { 
+                label: "Character Encoding",
+                submenu: encoding_menu_items(win)
+            },
+            { 
+                label: "Writing Mode",
+                submenu: [
+                    {
+                        label: "Writing Direction",
+                        submenu: [
+                            { label: "Left-to-Right", id: "writing_mode_ltr", click(item) { win.send("writing_mode_ltr"); }, type: "radio", checked: true },
+                            { label: "Right-to-Left", id: "writing_mode_rtl", click(item) { win.send("writing_mode_rtl"); }, type: "radio", checked: false },
+                            { label: "Top-to-Bottom", id: "writing_mode_ttb", click(item) { win.send("writing_mode_ttb"); }, type: "radio", checked: false },
+                            { label: "Bottom-to-Top", id: "writing_mode_btt", click(item) { win.send("writing_mode_btt"); }, type: "radio", checked: false }
+                        ]
+                    },
+                    {
+                        label: "Newline Direction", 
+                        submenu: [
+                            { label: "Right (→)", id: "newline_mode_ltr", click(item) { win.send("newline_mode_ltr"); }, type: "radio", checked: false },
+                            { label: "Left (←)", id: "newline_mode_rtl", click(item) { win.send("newline_mode_rtl"); }, type: "radio", checked: false },
+                            { label: "Down (↓)", id: "newline_mode_ttb", click(item) { win.send("newline_mode_ttb"); }, type: "radio", checked: true },
+                            { label: "Up (↑)", id: "newline_mode_btt", click(item) { win.send("newline_mode_btt"); }, type: "radio", checked: false }
+                        ]
+                    }
+                ]
+            },
+            { type: "separator" },
+            { label: "Toggle Q-Key Inserts Selected Character", id: "q_key_insert", accelerator: "CmdorCtrl+Alt+F", type: "checkbox", click(item) { win.send("q_key_insert", item.checked); }, checked: false },
+            { label: "Toggle Clicking on Character List Maps Function Keys", id: "charlist_fkey_mapping", type: "checkbox", click(item) { win.send("toggle_charlist_fkey_mapping", item.checked); }, checked: false },
+            { label: "Select Character Under Cursor", id: "use_character_under_cursor", accelerator: "Alt+F", click(item) { win.send("use_character_under_cursor"); } },
+            
+        ]
+    };
+}
+
+
+
 function network_menu_template(win, enabled) {
     return {
         label: "&Network", submenu: [
@@ -612,8 +589,57 @@ function debug_menu_template(win) {
     };
 }
 
+
+function lospec_palette_menu_items(win) {
+    return Object.keys(lospec_palette_list).map((lospec_palette_name) => {
+        return { label: lospec_palette_name, id: lospec_palette_name, click(item) { win.send("change_palette", lospec_palette_name); }, type: "checkbox", checked: false };
+    });
+}
+
+function viler_font_menu_items(win) {
+    return Object.keys(viler_font_list).map((menu_title) => {
+        return {
+            label: menu_title, submenu: Object.keys(viler_font_list[menu_title]).map((font_name) => {
+                return { label: font_name, id: font_name, click(item) { win.send("change_font", font_name); }, type: "checkbox", checked: false };
+            })
+        };
+    });
+}
+
+function custom_font_menu_items(win) {
+    return Object.keys(custom_font_list).map((menu_title) => {
+        return {
+            label: menu_title, submenu: Object.keys(custom_font_list[menu_title]).map((font_name) => {
+                return { label: font_name, id: font_name, click(item) { win.send("change_font", font_name); }, type: "checkbox", checked: false };
+            })
+        };
+    });
+}
+
+function font_menu_items(win) {
+    return Object.keys(font_list).map((menu_title) => {
+        return {
+            label: menu_title, submenu: Object.keys(font_list[menu_title]).map((font_name) => {
+                return { label: `${font_name} (8×${font_list[menu_title][font_name]})`, id: font_name, click(item) { win.send("change_font", font_name); }, type: "checkbox", checked: false };
+            })
+        };
+    });
+}
+
+function encoding_menu_items(win) {
+    return AVAILABLE_ENCODINGS.map((encoding) => {
+        return { 
+            label: get_encoding_description(encoding), 
+            id: `encoding_${encoding}`, 
+            click(item) { win.send("change_encoding", encoding); }, 
+            type: "radio", 
+            checked: encoding === "CP437" 
+        };
+    });
+}
+
 function create_menu_template(win, chat, debug) {
-    const menu_lists = [file_menu_template(win), edit_menu_template(win, chat), selection_menu_template(win, chat), colors_menu_template(win), font_menu_template(win), view_menu_template(win), network_menu_template(win, chat)];
+    const menu_lists = [file_menu_template(win), edit_menu_template(win, chat), selection_menu_template(win, chat), view_menu_template(win), colors_menu_template(win), font_menu_template(win), text_menu_template(win),  network_menu_template(win, chat)];
     /*if (debug)*/ menu_lists.push(debug_menu_template(win));
     return menu_lists;
 }

@@ -1017,11 +1017,51 @@ class TextModeDoc extends events.EventEmitter {
         const mid_point = Math.floor(doc.columns / 2);
         const dont_mirror = dx < mid_point && dx + blocks.columns > mid_point;
         if (!single_undo) this.undo_history.start_chunk();
-        for (let y = 0; y + dy < doc.rows && y < blocks.rows; y++) {
-            for (let x = 0; x + dx < doc.columns && x < blocks.columns; x++) {
-                const block = blocks.data[y * blocks.columns + x];
-                if (!blocks.transparent || block.code != 32 || block.bg != 0) this.change_data(dx + x, dy + y, block.code, block.fg, block.bg, undefined, undefined, !dont_mirror);
-            }
+        
+        // Handle different writing modes
+        switch (this.writing_mode) {
+            case "rtl": // Right-to-Left: place from right to left
+                for (let y = 0; y + dy < doc.rows && y < blocks.rows; y++) {
+                    for (let x = 0; x < blocks.columns && dx - x >= 0; x++) {
+                        const block = blocks.data[y * blocks.columns + x];
+                        if (!blocks.transparent || block.code != 32 || block.bg != 0) {
+                            this.change_data(dx - x, dy + y, block.code, block.fg, block.bg, undefined, undefined, !dont_mirror);
+                        }
+                    }
+                }
+                break;
+                
+            case "ttb": // Top-to-Bottom: place vertically
+                for (let x = 0; x + dx < doc.columns && x < blocks.columns; x++) {
+                    for (let y = 0; y + dy < doc.rows && y < blocks.rows; y++) {
+                        const block = blocks.data[y * blocks.columns + x];
+                        if (!blocks.transparent || block.code != 32 || block.bg != 0) {
+                            this.change_data(dx + x, dy + y, block.code, block.fg, block.bg, undefined, undefined, !dont_mirror);
+                        }
+                    }
+                }
+                break;
+                
+            case "btt": // Bottom-to-Top: place vertically from bottom
+                for (let x = 0; x + dx < doc.columns && x < blocks.columns; x++) {
+                    for (let y = 0; y < blocks.rows && dy - y >= 0; y++) {
+                        const block = blocks.data[y * blocks.columns + x];
+                        if (!blocks.transparent || block.code != 32 || block.bg != 0) {
+                            this.change_data(dx + x, dy - y, block.code, block.fg, block.bg, undefined, undefined, !dont_mirror);
+                        }
+                    }
+                }
+                break;
+                
+            default: // "ltr" or fallback: Left-to-Right (original behavior)
+                for (let y = 0; y + dy < doc.rows && y < blocks.rows; y++) {
+                    for (let x = 0; x + dx < doc.columns && x < blocks.columns; x++) {
+                        const block = blocks.data[y * blocks.columns + x];
+                        if (!blocks.transparent || block.code != 32 || block.bg != 0) {
+                            this.change_data(dx + x, dy + y, block.code, block.fg, block.bg, undefined, undefined, !dont_mirror);
+                        }
+                    }
+                }
         }
     }
 
