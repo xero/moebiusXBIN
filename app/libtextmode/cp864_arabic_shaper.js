@@ -74,15 +74,20 @@ class CP864ArabicShaper {
                 isolated: 0xFEF1, initial: 0xFEF3, final: 0xFEF2
             },
             
-            // Non-connecting letters (isolated only)
+            0x0637: { // TAH (connects)
+                isolated: 0xFEC1, initial: 0xFEC3, medial: 0xFEC4, final: 0xFEC2
+            },
+            0x0638: { // ZAH (connects)
+                isolated: 0xFEC5, initial: 0xFEC7, medial: 0xFEC8, final: 0xFEC6
+            },
+            
+            // Right non-connecting letters (only isolated forms available in CP864)
             0x062F: { isolated: 0xFEA9 }, // DAL
             0x0630: { isolated: 0xFEAB }, // THAL
             0x0631: { isolated: 0xFEAD }, // REH
             0x0632: { isolated: 0xFEAF }, // ZAIN
-            0x0637: { isolated: 0xFEC1 }, // TAH
-            0x0638: { isolated: 0xFEC5 }, // ZAH
             0x0648: { isolated: 0xFEED }, // WAW
-            0x0649: { isolated: 0xFEEF, final: 0xFEF0 }, // ALEF MAKSURA
+            0x0649: { isolated: 0xFEEF, final: 0xFEF0 }, // ALEF MAKSURA (has final in CP864)
             
             // Special characters
             0x0622: { isolated: 0xFE81, final: 0xFE82 }, // ALEF WITH MADDA ABOVE
@@ -95,8 +100,8 @@ class CP864ArabicShaper {
 
         // Characters that don't connect to following characters
         this.rightNonConnectors = new Set([
-            0x0627, 0x0622, 0x0623, 0x0624, 0x0629, 0x0621, // ALEF variants, TEH MARBUTA, HAMZA
-            0x062F, 0x0630, 0x0631, 0x0632, 0x0637, 0x0638, // DAL, THAL, REH, ZAIN, TAH, ZAH
+            0x0624, 0x0621, // WAW WITH HAMZA ABOVE, HAMZA
+            0x062F, 0x0630, 0x0631, 0x0632, // DAL, THAL, REH, ZAIN
             0x0648, 0x0649 // WAW, ALEF MAKSURA
         ]);
 
@@ -113,6 +118,11 @@ class CP864ArabicShaper {
      * Determines if a character can connect to the right (following character)
      */
     canConnectRight(charCode) {
+        // ALEF variants can connect from left but not to right
+        const alefVariants = new Set([0x0627, 0x0622, 0x0623]); // ALEF, ALEF WITH MADDA, ALEF WITH HAMZA
+        if (alefVariants.has(charCode)) {
+            return false;
+        }
         return this.cp864Forms[charCode] && !this.rightNonConnectors.has(charCode);
     }
 
@@ -120,7 +130,9 @@ class CP864ArabicShaper {
      * Determines if a character can connect to the left (previous character)
      */
     canConnectLeft(charCode) {
-        return this.cp864Forms[charCode] && !this.rightNonConnectors.has(charCode);
+        // A character can connect to the left if it has Arabic forms defined
+        // (rightNonConnectors only affects right connections, not left)
+        return this.cp864Forms[charCode] !== undefined;
     }
 
     /**
@@ -129,6 +141,12 @@ class CP864ArabicShaper {
     getPositionalForm(charCode, connectsLeft, connectsRight) {
         const forms = this.cp864Forms[charCode];
         if (!forms) return null;
+
+        // Special handling for ALEF variants - they can only be isolated or final
+        const alefVariants = new Set([0x0627, 0x0622, 0x0623]); // ALEF, ALEF WITH MADDA, ALEF WITH HAMZA
+        if (alefVariants.has(charCode)) {
+            return connectsLeft ? (forms.final || forms.isolated) : forms.isolated;
+        }
 
         // Try to get the ideal form first
         let targetForm;
@@ -147,12 +165,24 @@ class CP864ArabicShaper {
             return forms[targetForm];
         }
 
-        // CP864 fallback logic
-        if (targetForm === 'medial' && forms.initial) {
-            return forms.initial; // medial → initial fallback
+        // CP864 comprehensive fallback logic
+        // For letters that don't have all 4 forms, use these substitutions:
+        // - medial form → initial form (if medial not available)
+        // - final form → isolated form (if final not available)
+        // - initial form → isolated form (if initial not available)
+        // - isolated form is always the last fallback
+        
+        if (targetForm === 'medial') {
+            if (forms.initial) return forms.initial; // medial → initial fallback
+            if (forms.isolated) return forms.isolated; // medial → isolated (last resort)
         }
-        if (targetForm === 'final' && forms.isolated) {
-            return forms.isolated; // final → isolated fallback
+        
+        if (targetForm === 'final') {
+            if (forms.isolated) return forms.isolated; // final → isolated fallback
+        }
+        
+        if (targetForm === 'initial') {
+            if (forms.isolated) return forms.isolated; // initial → isolated fallback
         }
         
         // Last resort: return isolated form
