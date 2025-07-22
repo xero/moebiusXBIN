@@ -100,7 +100,10 @@ function paste_blocks() {
                                 data[i] = {code: 32, fg, bg}; // space
                             } else {
                                 const unicode_char = lines[y].charCodeAt(x);
-                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char);
+                                // Provide context for Arabic shaping (same as keyboard input)
+                                const prevChar = x > 0 ? lines[y].charCodeAt(x - 1) : null;
+                                const nextChar = x < lines[y].length - 1 ? lines[y].charCodeAt(x + 1) : null;
+                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char, prevChar, nextChar);
                                 data[i] = {code, fg, bg};
                             }
                         }
@@ -118,7 +121,10 @@ function paste_blocks() {
                                 data[i] = {code: 32, fg, bg}; // space
                             } else {
                                 const unicode_char = lines[y].charCodeAt(x);
-                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char);
+                                // Provide context for Arabic shaping (same as keyboard input)
+                                const prevChar = x > 0 ? lines[y].charCodeAt(x - 1) : null;
+                                const nextChar = x < lines[y].length - 1 ? lines[y].charCodeAt(x + 1) : null;
+                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char, prevChar, nextChar);
                                 data[i] = {code, fg, bg};
                             }
                         }
@@ -137,7 +143,10 @@ function paste_blocks() {
                                 data[i] = {code: 32, fg, bg}; // space
                             } else {
                                 const unicode_char = lines[x].charCodeAt(y);
-                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char);
+                                // Provide context for Arabic shaping (same as keyboard input)
+                                const prevChar = y > 0 ? lines[x].charCodeAt(y - 1) : null;
+                                const nextChar = y < lines[x].length - 1 ? lines[x].charCodeAt(y + 1) : null;
+                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char, prevChar, nextChar);
                                 data[i] = {code, fg, bg};
                             }
                         }
@@ -159,7 +168,10 @@ function paste_blocks() {
                                 data[i] = {code: 32, fg, bg}; // space
                             } else {
                                 const unicode_char = lines[x].charCodeAt(y);
-                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char);
+                                // Provide context for Arabic shaping (same as keyboard input)
+                                const prevChar = y > 0 ? lines[x].charCodeAt(y - 1) : null;
+                                const nextChar = y < lines[x].length - 1 ? lines[x].charCodeAt(y + 1) : null;
+                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char, prevChar, nextChar);
                                 data[i] = {code, fg, bg};
                             }
                         }
@@ -178,7 +190,10 @@ function paste_blocks() {
                                 data[i] = {code: 32, fg, bg}; // space
                             } else {
                                 const unicode_char = lines[y].charCodeAt(x);
-                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char);
+                                // Provide context for Arabic shaping (same as keyboard input)
+                                const prevChar = x > 0 ? lines[y].charCodeAt(x - 1) : null;
+                                const nextChar = x < lines[y].length - 1 ? lines[y].charCodeAt(x + 1) : null;
+                                const code = libtextmode.encoding_manager.unicode_to_encoding(unicode_char, prevChar, nextChar);
                                 data[i] = {code, fg, bg};
                             }
                         }

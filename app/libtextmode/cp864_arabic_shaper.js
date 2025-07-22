@@ -74,11 +74,11 @@ class CP864ArabicShaper {
                 isolated: 0xFEF1, initial: 0xFEF3, final: 0xFEF2
             },
             
-            0x0637: { // TAH (connects)
-                isolated: 0xFEC1, initial: 0xFEC3, medial: 0xFEC4, final: 0xFEC2
+            0x0637: { // TAH (only one form in CP864)
+                isolated: 0xFEC1
             },
-            0x0638: { // ZAH (connects)
-                isolated: 0xFEC5, initial: 0xFEC7, medial: 0xFEC8, final: 0xFEC6
+            0x0638: { // ZAH (only one form in CP864)  
+                isolated: 0xFEC5
             },
             
             // Right non-connecting letters (only isolated forms available in CP864)
@@ -93,6 +93,7 @@ class CP864ArabicShaper {
             0x0622: { isolated: 0xFE81, final: 0xFE82 }, // ALEF WITH MADDA ABOVE
             0x0623: { isolated: 0xFE83, final: 0xFE84 }, // ALEF WITH HAMZA ABOVE
             0x0624: { isolated: 0xFE85 }, // WAW WITH HAMZA ABOVE
+            0x0625: { isolated: 0xFE8D, final: 0xFE8E }, // ALEF WITH HAMZA BELOW -> fallback to regular ALEF
             0x0626: { initial: 0xFE8B }, // YEH WITH HAMZA ABOVE
             0x0629: { isolated: 0xFE93 }, // TEH MARBUTA
             0x0621: { isolated: 0xFE80 }, // HAMZA
@@ -101,6 +102,7 @@ class CP864ArabicShaper {
         // Characters that don't connect to following characters
         this.rightNonConnectors = new Set([
             0x0624, 0x0621, // WAW WITH HAMZA ABOVE, HAMZA
+            0x0625, // ALEF WITH HAMZA BELOW (behaves like ALEF)
             0x062F, 0x0630, 0x0631, 0x0632, // DAL, THAL, REH, ZAIN
             0x0648, 0x0649 // WAW, ALEF MAKSURA
         ]);
@@ -119,7 +121,7 @@ class CP864ArabicShaper {
      */
     canConnectRight(charCode) {
         // ALEF variants can connect from left but not to right
-        const alefVariants = new Set([0x0627, 0x0622, 0x0623]); // ALEF, ALEF WITH MADDA, ALEF WITH HAMZA
+        const alefVariants = new Set([0x0627, 0x0622, 0x0623, 0x0625]); // ALEF, ALEF WITH MADDA, ALEF WITH HAMZA ABOVE/BELOW
         if (alefVariants.has(charCode)) {
             return false;
         }
@@ -143,7 +145,7 @@ class CP864ArabicShaper {
         if (!forms) return null;
 
         // Special handling for ALEF variants - they can only be isolated or final
-        const alefVariants = new Set([0x0627, 0x0622, 0x0623]); // ALEF, ALEF WITH MADDA, ALEF WITH HAMZA
+        const alefVariants = new Set([0x0627, 0x0622, 0x0623, 0x0625]); // ALEF, ALEF WITH MADDA, ALEF WITH HAMZA ABOVE/BELOW
         if (alefVariants.has(charCode)) {
             return connectsLeft ? (forms.final || forms.isolated) : forms.isolated;
         }
