@@ -630,7 +630,12 @@ class Cursor {
 
     stamp() {
         const blocks = this.operation_blocks.underneath ? libtextmode.merge_blocks(this.operation_blocks, this.get_blocks_in_operation()) : this.operation_blocks;
+        // Save current writing mode and force LTR for stamp operations
+        const original_writing_mode = doc.writing_mode;
+        doc.writing_mode = "ltr";
         doc.place(blocks, this.x, this.y, this.operation_blocks.is_move_operation);
+        // Restore original writing mode
+        doc.writing_mode = original_writing_mode;
         if (this.operation_blocks.is_move_operation) this.operation_blocks.is_move_operation = false;
     }
 
