@@ -2,11 +2,19 @@ function lookup_url(font_name) {
   switch (font_name) {
     case "TOPAZ 437": return "../fonts/custom/TOPAZ_437.F16";
     case "TES-SYM5": return "../fonts/custom/TES-SYM5.F16";
+    case "TES-SYM6": return "../fonts/custom/TES-SYM6.F16"
     case "TES-GIGR": return "../fonts/custom/TES-GIGR.F16";
     case "GJSCI-3": return "../fonts/custom/GJSCI-3.F16";
     case "GJSCI-4": return "../fonts/custom/GJSCI-4.F16";
     case "GJSCI-X": return "../fonts/custom/GJSCI-X.F16";
     case "FROGBLOCK": return "../fonts/custom/FROGBLOCK.F08";
+    case "NewSchool_5": return "../fonts/custom/newschool_5.F16";
+    case "NewSchool_4": return "../fonts/custom/newschool_4.F16";
+    case "NewSchool_3": return "../fonts/custom/newschool_3.F16";
+    case "NewSchool_2": return "../fonts/custom/newschool_2.F16";
+    case "NewSchool_1": return "../fonts/custom/newschool_1.F16";
+    case "NewSchool_hf": return "../fonts/custom/newschool_hf.F16";
+    case "structures": return "../fonts/custom/structures.F16";
     case "IBM VGA": return "../fonts/ibm/CP437.F16";
     case "IBM VGA50": return "../fonts/ibm/CP437.F08";
     case "IBM VGA25G": return "../fonts/ibm/CP437.F19";
@@ -156,6 +164,11 @@ function lookup_url(font_name) {
     case "Amiga Topaz 1+": return "../fonts/amiga/TopazPlus_a500.F16";
     case "Amiga Topaz 2": return "../fonts/amiga/Topaz_a1200.F16";
     case "Amiga Topaz 2+": return "../fonts/amiga/TopazPlus_a1200.F16";
+    case "Topaz_Kickstart_v0.7": return "../fonts/amiga/Topaz_Kickstart_v0.7.F16";
+    case "Topaz_Kickstart_v1.0": return "../fonts/amiga/Topaz_Kickstart_v1.0.F16";
+    case "Topaz_Kickstart_v1.2": return "../fonts/amiga/Topaz_Kickstart_v1.2.F16";
+    case "Topaz_Kickstart_v1.4": return "../fonts/amiga/Topaz_Kickstart_v1.4.F16";
+    case "Topaz_Kickstart_v2.0": return "../fonts/amiga/Topaz_Kickstart_v2.0.F16";
     case "Amiga P0T-NOoDLE": return "../fonts/amiga/P0T-NOoDLE.F16";
     case "Amiga MicroKnight": return "../fonts/amiga/MicroKnight.F16";
     case "Amiga MicroKnight+": return "../fonts/amiga/MicroKnightPlus.F16";

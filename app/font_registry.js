@@ -5,8 +5,8 @@
 const { font_list, viler_font_list, custom_font_list } = (() => {
     // Define font lists here (extracted from menu.js)
     const font_list = {
-        "MoebiusXBIN": { "TOPAZ 437": 16, "TES-SYM5": 16, "TES-GIGR": 16, "GJSCI-3": 16, "GJSCI-4": 16, "GJSCI-X": 16, "FROGBLOCK": 8 },
-        "Amiga": { "Amiga Topaz 1": 16, "Amiga Topaz 1+": 16, "Amiga Topaz 2": 16, "Amiga Topaz 2+": 16, "Amiga P0T-NOoDLE": 16, "Amiga MicroKnight": 16, "Amiga MicroKnight+": 16, "Amiga mOsOul": 16 },
+        "MoebiusXBIN": { "TOPAZ 437": 16, "TES-SYM5": 16, "TES-SYM6": 16, "TES-GIGR": 16, "GJSCI-3": 16, "GJSCI-4": 16, "GJSCI-X": 16, "FROGBLOCK": 8, "NewSchool_1": 16, "NewSchool_2": 16, "NewSchool_3": 16, "NewSchool_4": 16, "NewSchool_5": 16, "NewSchool_hf": 16, "structures": 16 },
+        "Amiga": { "Amiga Topaz 1": 16, "Amiga Topaz 1+": 16, "Amiga Topaz 2": 16, "Amiga Topaz 2+": 16, "Amiga P0T-NOoDLE": 16, "Amiga MicroKnight": 16, "Amiga MicroKnight+": 16, "Amiga mOsOul": 16, "Topaz_Kickstart_v0.7": 16, "Topaz_Kickstart_v1.0": 16, "Topaz_Kickstart_v1.2": 16, "Topaz_Kickstart_v1.4": 16, "Topaz_Kickstart_v2.0": 16},
         "Arabic": { "IBM VGA50 864": 8, "IBM EGA 864": 14, "IBM VGA 864": 16 },
         "Baltic Rim": { "IBM VGA50 775": 8, "IBM EGA 775": 14, "IBM VGA 775": 16 },
         "C64": { "C64 PETSCII unshifted": 8, "C64 PETSCII shifted": 8 },
