@@ -1024,7 +1024,7 @@ class TextModeDoc extends events.EventEmitter {
                 for (let y = 0; y + dy < doc.rows && y < blocks.rows; y++) {
                     for (let x = 0; x < blocks.columns && dx - x >= 0; x++) {
                         const block = blocks.data[y * blocks.columns + x];
-                        if (!blocks.transparent || block.code != 32 || block.bg != 0) {
+                        if (block && (!blocks.transparent || block.code != 32 || block.bg != 0)) {
                             this.change_data(dx - x, dy + y, block.code, block.fg, block.bg, undefined, undefined, !dont_mirror);
                         }
                     }

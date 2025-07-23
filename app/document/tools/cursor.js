@@ -440,8 +440,13 @@ class Cursor {
         }
         doc.change_data(x, y, code, palette.fg, palette.bg, { prev_x: x, prev_y: y }, this);
         
-        // Apply contextual shaping
-        libtextmode.encoding_manager.apply_contextual_shaping(doc, x, y);
+        // Apply contextual shaping and check if ligature was formed
+        const ligatureFormed = libtextmode.encoding_manager.apply_contextual_shaping(doc, x, y);
+        
+        // If ligature was formed in RTL mode, move cursor back to ligature position
+        if (ligatureFormed && doc.writing_mode === "rtl") {
+            this.move_to(Math.min(doc.columns - 1, this.x + 1), this.y, true, true);
+        }
         
         this.draw();
     }

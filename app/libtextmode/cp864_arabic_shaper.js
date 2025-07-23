@@ -74,10 +74,10 @@ class CP864ArabicShaper {
                 isolated: 0xFEF1, initial: 0xFEF3, final: 0xFEF2
             },
             
-            0x0637: { // TAH (only one form in CP864)
+            0x0637: { // TAH 
                 isolated: 0xFEC1
             },
-            0x0638: { // ZAH (only one form in CP864)  
+            0x0638: { // ZAH   
                 isolated: 0xFEC5
             },
             
@@ -87,7 +87,7 @@ class CP864ArabicShaper {
             0x0631: { isolated: 0xFEAD }, // REH
             0x0632: { isolated: 0xFEAF }, // ZAIN
             0x0648: { isolated: 0xFEED }, // WAW
-            0x0649: { isolated: 0xFEEF, final: 0xFEF0 }, // ALEF MAKSURA (has final in CP864)
+            0x0649: { isolated: 0xFEEF, final: 0xFEF0 }, // ALEF MAKSURA
             
             // Special characters
             0x0622: { isolated: 0xFE81, final: 0xFE82 }, // ALEF WITH MADDA ABOVE
@@ -107,12 +107,13 @@ class CP864ArabicShaper {
             0x0648, 0x0649 // WAW, ALEF MAKSURA
         ]);
 
-        // LAM+ALEF ligatures (CP864 supports these)
-        this.lamAlefLigatures = {
+        // Ligatures (CP864 supports these)
+        this.ligatures = {
             // LAM (0x0644) + ALEF variants
             [`${0x0644}_${0x0627}`]: { isolated: 0xFEFB, final: 0xFEFC }, // LAM + ALEF
             [`${0x0644}_${0x0622}`]: { isolated: 0xFEF5, final: 0xFEF6 }, // LAM + ALEF WITH MADDA ABOVE
             [`${0x0644}_${0x0623}`]: { isolated: 0xFEF7, final: 0xFEF8 }, // LAM + ALEF WITH HAMZA ABOVE
+            [`${0x0644}_${0x0625}`]: { isolated: 0xFEFB, final: 0xFEFC }, // LAM + ALEF WITH HAMZA BELOW (fallback to regular LAM+ALEF)
         };
     }
 
@@ -192,23 +193,22 @@ class CP864ArabicShaper {
     }
 
     /**
-     * Checks for LAM+ALEF ligatures
+     * Checks for ligatures
      */
-    checkLamAlefLigature(codePoints, pos) {
+    checkLigature(codePoints, pos) {
         if (pos >= codePoints.length - 1) return null;
         
-        const lam = codePoints[pos];
-        const alef = codePoints[pos + 1];
+        const first = codePoints[pos];
+        const second = codePoints[pos + 1];
         
-        if (lam === 0x0644) { // LAM
-            const ligatureKey = `${lam}_${alef}`;
-            if (this.lamAlefLigatures[ligatureKey]) {
-                return {
-                    ligature: this.lamAlefLigatures[ligatureKey],
-                    consumed: 2 // LAM + ALEF = 2 characters
-                };
-            }
+        const ligatureKey = `${first}_${second}`;
+        if (this.ligatures[ligatureKey]) {
+            return {
+                ligature: this.ligatures[ligatureKey],
+                consumed: 2
+            };
         }
+        
         return null;
     }
 
@@ -224,8 +224,8 @@ class CP864ArabicShaper {
         for (let i = 0; i < codePoints.length; i++) {
             const currentChar = codePoints[i];
             
-            // Check for LAM+ALEF ligature first
-            const ligature = this.checkLamAlefLigature(codePoints, i);
+            // Check for ligature first
+            const ligature = this.checkLigature(codePoints, i);
             if (ligature) {
                 // Determine if ligature connects to left
                 const prevChar = i > 0 ? codePoints[i - 1] : null;
@@ -236,7 +236,7 @@ class CP864ArabicShaper {
                     : ligature.ligature.isolated;
                 
                 result.push(ligatureForm);
-                i += ligature.consumed - 1; // Skip the ALEF
+                i += ligature.consumed - 1; // Skip the second character
                 continue;
             }
             
@@ -277,9 +277,35 @@ class CP864ArabicShaper {
     shapeSingle(char, prevChar = null, nextChar = null) {
         const currentCode = char.codePointAt(0);
         
+        // Check for ligature first if we have a next character
+        if (nextChar) {
+            const nextCode = nextChar.codePointAt(0);
+            const ligatureKey = `${currentCode}_${nextCode}`;
+            if (this.ligatures[ligatureKey]) {
+                // Determine connection to left
+                const prevCode = prevChar ? prevChar.codePointAt(0) : null;
+                const connectsLeft = prevCode && this.canConnectRight(prevCode);
+                
+                const ligature = this.ligatures[ligatureKey];
+                const ligatureForm = connectsLeft && ligature.final 
+                    ? ligature.final 
+                    : ligature.isolated;
+                
+                return {
+                    codePoint: ligatureForm,
+                    isLigature: true,
+                    consumesNext: true
+                };
+            }
+        }
+        
         // Check if this is an Arabic character that needs shaping
         if (!this.cp864Forms[currentCode]) {
-            return currentCode; // Not Arabic, return as-is
+            return {
+                codePoint: currentCode,
+                isLigature: false,
+                consumesNext: false
+            };
         }
         
         const prevCode = prevChar ? prevChar.codePointAt(0) : null;
@@ -289,7 +315,11 @@ class CP864ArabicShaper {
         const connectsRight = nextCode && this.canConnectLeft(nextCode);
         
         const shaped = this.getPositionalForm(currentCode, connectsLeft, connectsRight);
-        return shaped || currentCode;
+        return {
+            codePoint: shaped || currentCode,
+            isLigature: false,
+            consumesNext: false
+        };
     }
 }
 

@@ -103,6 +103,33 @@ function isArabicCharacter(unicode_char) {
            (unicode_char >= 0xFB50 && unicode_char <= 0xFDFF);   // Arabic Presentation Forms-A
 }
 
+// Strip combining Arabic diacritics (not supported in text mode)
+function stripCombiningDiacritics(text) {
+    // Combining diacritics to strip (text mode doesn't support combining characters)
+    const combiningDiacritics = new Set([
+        0x064B, // FATHATAN
+        0x064C, // DAMMATAN  
+        0x064D, // KASRATAN
+        0x064E, // FATHA
+        0x064F, // DAMMA
+        0x0650, // KASRA
+        0x0651, // SHADDAH
+        0x0652, // SUKUN
+        0x0653, // MADDAH ABOVE
+        0x0654, // HAMZA ABOVE
+        0x0655, // HAMZA BELOW
+        0x0656, // SUBSCRIPT ALEF
+        0x0657, // INVERTED DAMMA
+        0x0658, // MARK NOON GHUNNA
+        0x0670  // SUPERSCRIPT ALEF
+    ]);
+    
+    return Array.from(text).filter(char => {
+        const code = char.codePointAt(0);
+        return !combiningDiacritics.has(code);
+    }).join('');
+}
+
 // Convert Arabic presentation forms back to base characters
 function presentationFormToBase(presentationChar) {
     // This mapping converts presentation forms back to their base characters
@@ -119,8 +146,9 @@ function presentationFormToBase(presentationChar) {
             const medial = shaper.shapeSingle(String.fromCharCode(baseChar), String.fromCharCode(0x0628), String.fromCharCode(0x0628)); // with both
             const final = shaper.shapeSingle(String.fromCharCode(baseChar), String.fromCharCode(0x0628), null); // with prev
             
-            if (isolated === presentationChar || initial === presentationChar || 
-                medial === presentationChar || final === presentationChar) {
+            // Now always object format
+            if (isolated.codePoint === presentationChar || initial.codePoint === presentationChar || 
+                medial.codePoint === presentationChar || final.codePoint === presentationChar) {
                 return baseChar;
             }
         }
@@ -172,8 +200,21 @@ function unicode_to_encoding(unicode_char, prevChar = null, nextChar = null) {
         const prevCharStr = prevChar ? String.fromCharCode(prevChar) : null;
         const nextCharStr = nextChar ? String.fromCharCode(nextChar) : null;
         
+        // Strip combining diacritics from all characters
+        const cleanChar = stripCombiningDiacritics(char);
+        const cleanPrevChar = prevCharStr ? stripCombiningDiacritics(prevCharStr) : null;
+        const cleanNextChar = nextCharStr ? stripCombiningDiacritics(nextCharStr) : null;
+        
+        // If the character was entirely diacritics, skip it
+        if (!cleanChar) {
+            return null; // Signal to skip this character
+        }
+        
         // Use the shaper's single character shaping with context
-        const shaped_char_code = arabicShaper.shapeSingle(char, prevCharStr, nextCharStr);
+        const shaped_result = arabicShaper.shapeSingle(cleanChar, cleanPrevChar, cleanNextChar);
+        
+        // Now always returns object format
+        const shaped_char_code = shaped_result.codePoint;
         
         try {
             const shaped_char = String.fromCharCode(shaped_char_code);
@@ -213,6 +254,7 @@ function encoding_to_unicode(code) {
     }
 }
 
+
 // Apply contextual shaping after character placement
 function apply_contextual_shaping(doc, x, y) {
     if (current_encoding !== 'CP864') return;
@@ -238,6 +280,26 @@ function apply_contextual_shaping(doc, x, y) {
     const prevCharCode = rightBlock ? presentationFormToBase(encoding_to_unicode(rightBlock.code)?.charCodeAt(0)) : null;
     const nextCharCode = leftBlock ? presentationFormToBase(encoding_to_unicode(leftBlock.code)?.charCodeAt(0)) : null;
     
+    // Check for ligature formation first (right + current in RTL)
+    if (rightBlock && prevCharCode && isArabicCharacter(prevCharCode)) {
+        const prevChar = String.fromCharCode(prevCharCode);
+        const currentChar = String.fromCharCode(baseCharCode);
+        
+        // Check if previous + current forms a ligature using base characters
+        const ligatureResult = arabicShaper.shapeSingle(prevChar, null, currentChar);
+        
+        if (ligatureResult.isLigature) {
+            // Replace the right character with the ligature
+            const ligatureCode = unicode_to_encoding(ligatureResult.codePoint);
+            doc.change_data(x + 1, y, ligatureCode, rightBlock.fg, rightBlock.bg);
+            
+            // Remove the current character by making it a space
+            doc.change_data(x, y, 32, currentBlock.fg, currentBlock.bg); // ASCII space
+            return true; // Indicate ligature was formed
+        }
+    }
+    
+    // Regular contextual shaping
     // Re-encode current character with context
     const newCode = unicode_to_encoding(baseCharCode, prevCharCode, nextCharCode);
     if (newCode !== currentBlock.code) {
@@ -255,7 +317,10 @@ function apply_contextual_shaping(doc, x, y) {
             doc.change_data(x + 1, y, newPrevCode, rightBlock.fg, rightBlock.bg);
         }
     }
+    
+    return false; // No ligature was formed
 }
+
 
 module.exports = {
     set_encoding,

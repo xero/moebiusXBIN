@@ -84,6 +84,39 @@ function paste_blocks() {
             let lines = text.split("\n").map((line) => line.replace(/\r$/, ""));
             if (!lines.length) return;
             
+            // For CP864 Arabic text, preprocess to handle ligatures and diacritics
+            if (libtextmode.encoding_manager.get_encoding() === 'CP864') {
+                // Pre-formed ligatures that should be converted back to base characters
+                const ligatureMap = new Map([
+                    [0xFEFB, '\u0644\u0627'], // LAM+ALEF isolated → LAM + ALEF
+                    [0xFEFC, '\u0644\u0627'], // LAM+ALEF final → LAM + ALEF  
+                    [0xFEF5, '\u0644\u0622'], // LAM+ALEF WITH MADDA isolated → LAM + ALEF WITH MADDA
+                    [0xFEF6, '\u0644\u0622'], // LAM+ALEF WITH MADDA final → LAM + ALEF WITH MADDA
+                    [0xFEF7, '\u0644\u0623'], // LAM+ALEF WITH HAMZA isolated → LAM + ALEF WITH HAMZA ABOVE
+                    [0xFEF8, '\u0644\u0623']  // LAM+ALEF WITH HAMZA final → LAM + ALEF WITH HAMZA ABOVE
+                ]);
+                
+                const combiningDiacritics = new Set([
+                    0x064B, 0x064C, 0x064D, 0x064E, 0x064F, 0x0650, 0x0651, 
+                    0x0652, 0x0653, 0x0654, 0x0655, 0x0656, 0x0657, 0x0658, 0x0670
+                ]);
+                
+                lines = lines.map(line => {
+                    // First expand pre-formed ligatures back to base characters
+                    let processedLine = Array.from(line).map(char => {
+                        const code = char.codePointAt(0);
+                        return ligatureMap.get(code) || char;
+                    }).join('');
+                    
+                    // Then strip combining diacritics
+                    return Array.from(processedLine).filter(char => {
+                        const code = char.codePointAt(0);
+                        return !combiningDiacritics.has(code);
+                    }).join('');
+                });
+            }
+            
+            
             const writingMode = doc.writing_mode;
             let columns, rows, data;
             const {fg, bg} = palette;
@@ -206,8 +239,9 @@ function paste_blocks() {
 
 function paste(x, y) {
     const blocks = paste_blocks();
-    if (!paste_blocks) return;
+    if (!blocks) return;
     doc.place(blocks, x, y);
 }
+
 
 module.exports = {copy, paste_blocks, paste};
