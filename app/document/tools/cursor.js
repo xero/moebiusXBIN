@@ -658,6 +658,7 @@ class Cursor {
     }
 
     cut() {
+        if (this.mode == modes.EDITING) return;
         const { sx, sy, dx, dy } = this.reorientate_selection();
         this.copy();
         doc.erase(sx, sy, dx, dy);

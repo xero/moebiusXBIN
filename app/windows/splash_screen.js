@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.addEventListener("keydown", body_key_down, true);
     document.getElementById("server").addEventListener("keydown", key_down, true);
     document.getElementById("pass").addEventListener("keydown", key_down, true);
-    libtextmode.animate({ file: `${ans_path}gj-moebiusX.xb`, ctx: document.getElementById("splash_terminal").getContext("2d") });
+    libtextmode.animate({ file: `${ans_path}splash_2025.xb`, ctx: document.getElementById("splash_terminal").getContext("2d") });
 });
 
 electron.ipcRenderer.on("saved_server", (event, { server, pass }) => {
