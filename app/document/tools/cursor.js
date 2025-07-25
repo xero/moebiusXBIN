@@ -128,34 +128,18 @@ class Cursor {
         doc.start_typing_session(this.x, this.y);
         
         if (doc.newline_mode === "ltr") {
-            // New line to the right (move to next column, use tracked start y)
-            if (keyboard.insert_mode && this.x < doc.columns - 1) {
-                this.insert_column(this.x + 1);
-            }
             const start_x = Math.min(doc.columns - 1, this.x + 1);
             const start_y = doc.newline_start_position.y;
             this.move_to(start_x, start_y, true, true);
         } else if (doc.newline_mode === "rtl") {
-            // New line to the left (move to previous column, use tracked start y)
-            if (keyboard.insert_mode && this.x > 0) {
-                this.insert_column(this.x);
-            }
             const start_x = Math.max(0, this.x - 1);
             const start_y = doc.newline_start_position.y;
             this.move_to(start_x, start_y, true, true);
         } else if (doc.newline_mode === "ttb") {
-            // New line downward (move to next row, use tracked start x)
-            if (keyboard.insert_mode && this.y < doc.rows - 1) {
-                this.insert_row(this.y + 1);
-            }
             const start_x = doc.newline_start_position.x;
             const start_y = Math.min(doc.rows - 1, this.y + 1);
             this.move_to(start_x, start_y, true, true);
         } else if (doc.newline_mode === "btt") {
-            // New line upward (move to previous row, use tracked start x)
-            if (keyboard.insert_mode && this.y > 0) {
-                this.insert_row(this.y);
-            }
             const start_x = doc.newline_start_position.x;
             const start_y = Math.max(0, this.y - 1);
             this.move_to(start_x, start_y, true, true);
@@ -232,7 +216,7 @@ class Cursor {
     }
 
     new_render() {
-        this.move_to(Math.min(this.x, doc.columns - 1), Math.min(this.y, doc.rows - 1));
+        this.move_to(Math.min(this.x, doc.columns - 1), Math.min(this.y, doc.rows - 1), false);
         this.resize_to_font();
         if (this.mode == modes.OPERATION) this.redraw_operation_blocks();
     }
