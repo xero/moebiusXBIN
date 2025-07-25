@@ -218,6 +218,46 @@ class KeyboardEvent extends events.EventEmitter {
                     return;
             }
         }
+        if (this.use_number_row) {
+            switch (event.code) {
+                case "Digit1":
+                    this.emit("f_key", 0);
+                    return;
+                case "Digit2":
+                    this.emit("f_key", 1);
+                    return;
+                case "Digit3":
+                    this.emit("f_key", 2);
+                    return;
+                case "Digit4":
+                    this.emit("f_key", 3);
+                    return;
+                case "Digit5":
+                    this.emit("f_key", 4);
+                    return;
+                case "Digit6":
+                    this.emit("f_key", 5);
+                    return;
+                case "Digit7":
+                    this.emit("f_key", 6);
+                    return;
+                case "Digit8":
+                    this.emit("f_key", 7);
+                    return;
+                case "Digit9":
+                    this.emit("f_key", 8);
+                    return;
+                case "Digit0":
+                    this.emit("f_key", 9);
+                    return;
+                case "Minus":
+                    this.emit("f_key", 10);
+                    return;
+                case "Equal":
+                    this.emit("f_key", 11);
+                    return;
+            }
+        }
         switch (event.code) {
             case "Home":
                 if (event.shiftKey && use_shift) this.emit("start_selection");
@@ -356,10 +396,12 @@ class KeyboardEvent extends events.EventEmitter {
     constructor() {
         super();
         this.use_numpad = false;
+        this.use_number_row = false;
         this.insert_mode = false;
         this.overwrite_mode = false;
         this.q_key_insert = false;
         on("use_numpad", (event, value) => this.use_numpad = value);
+        on("use_number_row", (event, value) => this.use_number_row = value);
         on("insert_mode", (event, value) => this.insert_mode = value);
         on("overwrite_mode", (event, value) => this.overwrite_mode = value);
         on("q_key_insert", (event, value) => this.q_key_insert = value);

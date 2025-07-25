@@ -560,7 +560,7 @@ function text_menu_template(win) {
                 ]
             },
             { type: "separator" },
-            { label: "Toggle Q-Key Inserts Selected Character", id: "q_key_insert", accelerator: "CmdorCtrl+Alt+F", type: "checkbox", click(item) { win.send("q_key_insert", item.checked); }, checked: false },
+            { label: "Toggle Q-Key Inserts Selected Character", id: "q_key_insert", accelerator: "CmdorCtrl+Alt+Q", type: "checkbox", click(item) { win.send("q_key_insert", item.checked); }, checked: false },
             { label: "Toggle Clicking on Character List Maps Function Keys", id: "charlist_fkey_mapping", type: "checkbox", click(item) { win.send("toggle_charlist_fkey_mapping", item.checked); }, checked: false },
             { label: "Select Character Under Cursor", id: "use_character_under_cursor", accelerator: "Alt+F", click(item) { win.send("use_character_under_cursor"); } },
             
