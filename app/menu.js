@@ -343,12 +343,7 @@ function edit_menu_template(win, chat) {
         label: "&Edit",
         submenu: [
             chat ? { label: "Undo", accelerator: "Cmd+Z", role: "undo" } : { label: "Undo", id: "undo", accelerator: darwin ? "CmdorCtrl+Z" : "", click(item) { win.send("undo"); }, enabled: false },
-            chat ? { label: "Redo", accelerator: "Cmd+Shift+Z", role: "redo" } : { label: "Redo", id: "redo", accelerator: darwin ? "CmdorCtrl+Shift+Z" : "", click(item) { win.send("redo"); }, enabled: false },
-            { type: "separator" },
-            { label: "Toggle Insert Mode", id: "toggle_insert_mode", accelerator: darwin ? "" : "Insert", type: "checkbox", click(item) { win.send("insert_mode", item.checked); }, checked: false },
-            { label: "Toggle Overwrite Mode", id: "overwrite_mode", accelerator: "CmdorCtrl+Alt+O", click(item) { win.send("overwrite_mode", item.checked); }, type: "checkbox", checked: false },
-            { type: "separator" },
-            { label: "Mirror Mode", id: "mirror_mode", accelerator: "CmdorCtrl+Alt+M", click(item) { win.send("mirror_mode", item.checked); }, type: "checkbox", checked: false },            
+            chat ? { label: "Redo", accelerator: "Cmd+Shift+Z", role: "redo" } : { label: "Redo", id: "redo", accelerator: darwin ? "CmdorCtrl+Shift+Z" : "", click(item) { win.send("redo"); }, enabled: false },    
             { type: "separator" },
             chat ? { label: "Cut", accelerator: "Cmd+X", role: "cut" } : { label: "Cut", id: "cut", accelerator: "CmdorCtrl+X", click(item) { win.send("cut"); }, enabled: false },
             chat ? { label: "Copy", accelerator: "Cmd+C", role: "copy" } : { label: "Copy", id: "copy", accelerator: "CmdorCtrl+C", click(item) { win.send("copy"); }, enabled: false },
@@ -429,12 +424,6 @@ function view_menu_template(win) {
             { label: "Show Status Bar", id: "show_status_bar", accelerator: "CmdorCtrl+/", click(item) { win.send("show_statusbar", item.checked); }, type: "checkbox", checked: true },
             { label: "Show Tool Bar", id: "show_tool_bar", accelerator: "CmdorCtrl+T", click(item) { win.send("show_toolbar", item.checked); }, type: "checkbox", checked: true },
             { label: "Hide Preview", id: "show_preview", accelerator: "CmdorCtrl+Alt+P", click(item) { win.send("show_preview", item.checked); }, type: "checkbox", checked: false },
-            { type: "separator" },
-            { label: "Previous Character Set", id: "previous_character_set", accelerator: "Ctrl+,", click(item) { win.send("previous_character_set"); }, enabled: true },
-            { label: "Next Character Set", id: "next_character_set", accelerator: "Ctrl+.", click(item) { win.send("next_character_set"); }, enabled: true },
-            { label: "Default Character Set", id: "default_character_set", accelerator: "Ctrl+/", click(item) { win.send("default_character_set"); }, enabled: true },
-            { label: "Save F-Key Character Sets\u2026", id: "save_fkey_sets", click(item) { win.send("save_fkey_sets"); } },
-            { label: "Load F-Key Character Sets\u2026", id: "load_fkey_sets", click(item) { win.send("load_fkey_sets"); } },
             { type: "separator" },
             { label: "Show Character List", id: "show_charlist", accelerator: "CmdorCtrl+Alt+L", click(item) { win.send("show_charlist", item.checked); }, type: "checkbox", checked: true },
             { type: "separator" },
@@ -521,6 +510,7 @@ function font_menu_template(win) {
             { type: "separator" },
             { label: "Load Custom Font\u2026", id: "loadcustomfont", click(item) { win.send("load_custom_font"); } },
             { label: "Export font\u2026", id: "export_font", click(item) { win.send("export_font"); } },
+            { label: "Export font as PNG\u2026", id: "export_font_png", click(item) { win.send("export_font_png"); } },
             { label: "Import font from image (GIF/PNG)\u2026", id: "import_font", click(item) { win.send("import_font"); } },
             { type: "separator" },
             { label: "Use 9px Font", id: "use_9px_font", accelerator: "CmdorCtrl+F", click(item) { win.send("use_9px_font", item.checked); }, type: "checkbox", checked: false },
@@ -530,7 +520,7 @@ function font_menu_template(win) {
 
 function text_menu_template(win) {
     return {
-        label: "&Text",
+        label: "&Input",
         submenu: [
             { 
                 label: "Character Encoding",
@@ -560,8 +550,20 @@ function text_menu_template(win) {
                 ]
             },
             { type: "separator" },
-            { label: "Toggle Q-Key Inserts Selected Character", id: "q_key_insert", accelerator: "CmdorCtrl+Alt+Q", type: "checkbox", click(item) { win.send("q_key_insert", item.checked); }, checked: false },
+            { label: "Toggle Insert Mode", id: "toggle_insert_mode", accelerator: darwin ? "" : "Insert", type: "checkbox", click(item) { win.send("insert_mode", item.checked); }, checked: false },
+            { label: "Toggle Overwrite Mode", id: "overwrite_mode", accelerator: "CmdorCtrl+Alt+O", click(item) { win.send("overwrite_mode", item.checked); }, type: "checkbox", checked: false },
+            { type: "separator" },
+            { label: "Mirror Mode", id: "mirror_mode", accelerator: "CmdorCtrl+Alt+M", click(item) { win.send("mirror_mode", item.checked); }, type: "checkbox", checked: false },        
+            { type: "separator" },
+            { label: "Previous Character Set", id: "previous_character_set", accelerator: "Ctrl+,", click(item) { win.send("previous_character_set"); }, enabled: true },
+            { label: "Next Character Set", id: "next_character_set", accelerator: "Ctrl+.", click(item) { win.send("next_character_set"); }, enabled: true },
+            { label: "Default Character Set", id: "default_character_set", accelerator: "Ctrl+/", click(item) { win.send("default_character_set"); }, enabled: true },
+            { label: "Save F-Key Character Sets\u2026", id: "save_fkey_sets", click(item) { win.send("save_fkey_sets"); } },
+            { label: "Load F-Key Character Sets\u2026", id: "load_fkey_sets", click(item) { win.send("load_fkey_sets"); } },
             { label: "Toggle Clicking on Character List Maps Function Keys", id: "charlist_fkey_mapping", type: "checkbox", click(item) { win.send("toggle_charlist_fkey_mapping", item.checked); }, checked: false },
+            { type: "separator" },
+            { label: "Toggle Q-Key Inserts Selected Character", id: "q_key_insert", accelerator: "CmdorCtrl+Alt+Q", type: "checkbox", click(item) { win.send("q_key_insert", item.checked); }, checked: false },
+            { type: "separator" },
             { label: "Select Character Under Cursor", id: "use_character_under_cursor", accelerator: "Alt+F", click(item) { win.send("use_character_under_cursor"); } },
             
         ]

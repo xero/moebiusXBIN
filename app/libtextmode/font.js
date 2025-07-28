@@ -172,4 +172,49 @@ class Font {
 	}
 }
 
-module.exports = { Font };
+function generateFontPreview(font) {
+	const { create_canvas } = require("./canvas");
+	
+	try {
+		if (!font.canvas) {
+			throw new Error('Font canvas is not available');
+		}
+		
+		// Create canvas for 16x16 character grid (like charlist)
+		const { canvas, ctx } = create_canvas(font.width * 16, font.height * 16);
+		
+		// Fill background with black
+		ctx.fillStyle = 'rgb(0, 0, 0)';
+		ctx.fillRect(0, 0, canvas.width, canvas.height);
+		
+		// Draw all 256 characters in a 16x16 grid using white characters
+		for (let y = 0, code = 0; y < 16; y++) {
+			for (let x = 0; x < 16; x++, code++) {
+				try {
+					// Draw the character glyph directly from font canvas (which contains white characters)
+					ctx.drawImage(
+						font.canvas,
+						code * font.width, 0, font.width, font.height,  // Source
+						x * font.width, y * font.height, font.width, font.height  // Destination
+					);
+				} catch (drawError) {
+					console.warn('Error drawing character', code, ':', drawError);
+				}
+			}
+		}
+		
+		const dataUrl = canvas.toDataURL();
+		
+		return {
+			canvas: canvas,
+			width: font.width,
+			height: font.height,
+			dataUrl: dataUrl
+		};
+	} catch (error) {
+		console.error('Error in generateFontPreview:', error);
+		throw error;
+	}
+}
+
+module.exports = { Font, generate_font_canvas, generateFontPreview };

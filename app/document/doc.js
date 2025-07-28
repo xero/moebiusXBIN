@@ -1186,6 +1186,10 @@ class TextModeDoc extends events.EventEmitter {
         await libtextmode.export_font(this, render, file);
     }
 
+    async export_font_png(file) {
+        await libtextmode.export_font_as_png(this, render, file);
+    }
+
     async share_online_xbin() {
         const bytes = libtextmode.encode_as_xbin(this)
         const req = await fetch(`https://api.16colo.rs/v1/paste?key=${SIXTEEN_COLORS_API_KEY}&extension=xb&retention=${retention}`, {

@@ -110,6 +110,13 @@ async function export_font() {
         await doc.export_font(file);
 }
 
+async function export_font_png() {
+    const font_name = doc.font_name || "font";
+    const file = save_box(doc.file, font_name, { filters: [{ name: "PNG Image", extensions: ["png"] }, { name: "All Files", extensions: ["*"] }] });
+    if (file)
+        await doc.export_font_png(file);
+}
+
 async function share_online() {
     const url = await doc.share_online();
     if (url) electron.shell.openExternal(url);
@@ -182,6 +189,7 @@ on("open_file", (event, file) => doc.open(file));
 on("check_before_closing", (event) => check_before_closing());
 on("share_online_xbin", (event, opts) => share_online_xbin());
 on("export_font", (event, opts) => export_font());
+on("export_font_png", (event, opts) => export_font_png());
 on("export_as_utf8", (event) => export_as_utf8());
 on("export_as_png", (event) => export_as_png());
 on("export_as_apng", (event) => export_as_apng());

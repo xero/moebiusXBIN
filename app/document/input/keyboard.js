@@ -90,6 +90,21 @@ class KeyboardEvent extends events.EventEmitter {
 
     alt_key(event) {
         switch (event.code) {
+            case "Numpad0":
+            case "Numpad1":
+            case "Numpad2":
+            case "Numpad3":
+            case "Numpad4":
+            case "Numpad5":
+            case "Numpad6":
+            case "Numpad7":
+            case "Numpad8":
+            case "Numpad9":
+                this.alt_numpad_active = true;
+                const digit = event.code.slice(-1);
+                this.alt_numpad_buffer += digit;
+                event.preventDefault();
+                return;
             case "F1":
                 this.emit("change_fkeys", event.shiftKey ? 10 : 0);
                 return;
@@ -405,6 +420,19 @@ class KeyboardEvent extends events.EventEmitter {
         }
     }
 
+    keyup(event) {
+        if (event.code === "AltLeft" || event.code === "AltRight") {
+            if (this.alt_numpad_active && this.alt_numpad_buffer.length > 0) {
+                const asciiCode = parseInt(this.alt_numpad_buffer, 10);
+                if (asciiCode > 0 && asciiCode <= 255) {
+                    this.emit("key_typed", asciiCode);
+                }
+                this.alt_numpad_active = false;
+                this.alt_numpad_buffer = "";
+            }
+        }
+    }
+
     get in_chat() {
         return document.activeElement == this.chat_input;
     }
@@ -416,6 +444,8 @@ class KeyboardEvent extends events.EventEmitter {
         this.insert_mode = false;
         this.overwrite_mode = false;
         this.q_key_insert = false;
+        this.alt_numpad_active = false;
+        this.alt_numpad_buffer = "";
         on("use_numpad", (event, value) => this.use_numpad = value);
         on("use_number_row", (event, value) => this.use_number_row = value);
         on("insert_mode", (event, value) => this.insert_mode = value);
@@ -428,6 +458,7 @@ class KeyboardEvent extends events.EventEmitter {
         document.addEventListener("DOMContentLoaded", () => {
             this.chat_input = document.getElementById("chat_input");
             document.body.addEventListener("keydown", (event) => this.keydown(event), true);
+            document.body.addEventListener("keyup", (event) => this.keyup(event), true);
         }, true);
     }
 }

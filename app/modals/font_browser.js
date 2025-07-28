@@ -1,5 +1,5 @@
 const { ipcRenderer } = require('electron');
-const { Font } = require('../libtextmode/font.js');
+const { Font, generateFontPreview } = require('../libtextmode/font.js');
 
 let selectedFont = null;
 let fontLists = {};
@@ -345,55 +345,6 @@ async function loadFontPreview(fontName) {
     }
 }
 
-function generateFontPreview(font) {
-    try {
-        if (!font.canvas) {
-            throw new Error('Font canvas is not available');
-        }
-        
-        // Create canvas for 16x16 character grid (like charlist)
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Set canvas size: 16 characters wide × 16 characters tall
-        canvas.width = font.width * 16;
-        canvas.height = font.height * 16;
-        
-        // Draw all 256 characters in a 16x16 grid
-        for (let y = 0, code = 0; y < 16; y++) {
-            for (let x = 0; x < 16; x++, code++) {
-                // Draw character using font's draw method (similar to charlist)
-                // We need foreground and background colors
-                const fg = 15; // White foreground
-                const bg = 0;  // Black background
-                
-                try {
-                    font.draw(ctx, { code, fg, bg }, x * font.width, y * font.height);
-                } catch (drawError) {
-                    console.warn('Error drawing character', code, ':', drawError);
-                    // Fallback: draw from font canvas directly
-                    ctx.drawImage(
-                        font.canvas,
-                        code * font.width, 0, font.width, font.height,  // Source
-                        x * font.width, y * font.height, font.width, font.height  // Destination
-                    );
-                }
-            }
-        }
-        
-        const dataUrl = canvas.toDataURL();
-        
-        return {
-            canvas: canvas,
-            width: font.width,
-            height: font.height,
-            dataUrl: dataUrl
-        };
-    } catch (error) {
-        console.error('Error in generateFontPreview:', error);
-        throw error;
-    }
-}
 
 
 function displayFontPreview(fontName, previewData) {
