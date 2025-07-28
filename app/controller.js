@@ -186,6 +186,10 @@ on("save_as", (event, opts) => process_save('save_as'));
 on("save_without_sauce", (event, opts) => process_save('save_without_sauce'));
 on("share_online", (event, opts) => share_online());
 on("open_file", (event, file) => doc.open(file));
+on("open_tutorial_data", (event, {bytes, filename, title}) => {
+    const tutorial_bytes = Buffer.from(bytes, 'base64');
+    doc.open_tutorial_data(tutorial_bytes, filename, title);
+});
 on("check_before_closing", (event) => check_before_closing());
 on("share_online_xbin", (event, opts) => share_online_xbin());
 on("export_font", (event, opts) => export_font());

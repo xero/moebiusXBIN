@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (process.platform != "darwin") preferences.innerText = "Settings";
     document.getElementById("new_document").addEventListener("click", (event) => electron.ipcRenderer.send("new_document"));
     document.getElementById("open").addEventListener("click", (event) => electron.ipcRenderer.send("open"));
+    document.getElementById("tutorial").addEventListener("click", (event) => electron.ipcRenderer.send("open_tutorial"));
     preferences.addEventListener("click", (event) => electron.ipcRenderer.send("preferences"));
     document.getElementById("connect").addEventListener("click", connect, true);
     document.body.addEventListener("keydown", body_key_down, true);

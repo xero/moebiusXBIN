@@ -106,6 +106,26 @@ async function open_file(file) {
     win.send("open_file", file);
 }
 electron.ipcMain.on("open_file", (event, {file}) => open_file(file));
+electron.ipcMain.on("open_tutorial", async (event) => {
+    const dev = require("electron-is-dev");
+    const tutorial_path = dev ? "./build/ans/tutorial.xb" : `${process.resourcesPath}/ans/tutorial.xb`;
+    const fs = require("fs");
+    
+    try {
+        // Read the file as raw bytes
+        const tutorial_bytes = fs.readFileSync(tutorial_path);
+        
+        // Create a new document window and send the raw file data to be parsed in the renderer
+        const win = await new_document_window();
+        win.send("open_tutorial_data", { 
+            bytes: tutorial_bytes.toString('base64'), 
+            filename: "tutorial.xb",
+            title: "MoebiusXBIN Tutorial"
+        });
+    } catch (error) {
+        console.error("Failed to load tutorial:", error);
+    }
+});
 
 function open_in_new_window(win) {
     if (win && docs[win.id].open_in_current_window) {

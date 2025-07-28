@@ -48,6 +48,12 @@ button {
     bottom: 16px;
 }
 
+#tutorial {
+    position: absolute;
+    left: 364px;
+    bottom: 16px;
+}
+
 #connect {
     position: absolute;
     width: 150px;

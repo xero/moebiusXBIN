@@ -1160,6 +1160,17 @@ class TextModeDoc extends events.EventEmitter {
         send("set_file", { file: this.file });
     }
 
+    async open_tutorial_data(bytes, filename, title) {
+        doc = libtextmode.read_bytes(bytes, filename);
+        doc.title = title;
+        this.undo_history.reset_undos();
+        this.file = undefined; // Keep as unsaved document
+        await this.start_rendering();
+        this.emit("new_document");
+        this.ready();
+        // Don't call set_file - this keeps it as an unsaved document
+    }
+
     async save(save_without_sauce) {
         if (!this.file) return;
         await libtextmode.write_file(this, this.file, { save_without_sauce });
