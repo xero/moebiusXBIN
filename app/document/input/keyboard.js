@@ -11,31 +11,33 @@ class KeyboardEvent extends events.EventEmitter {
     }
 
     ctrl_key(event) {
-        switch (event.code) {
-            case "Digit0":
-                this.emit("toggle_fg", 0);
-                return;
-            case "Digit1":
-                this.emit("toggle_fg", 1);
-                return;
-            case "Digit2":
-                this.emit("toggle_fg", 2);
-                return;
-            case "Digit3":
-                this.emit("toggle_fg", 3);
-                return;
-            case "Digit4":
-                this.emit("toggle_fg", 4);
-                return;
-            case "Digit5":
-                this.emit("toggle_fg", 5);
-                return;
-            case "Digit6":
-                this.emit("toggle_fg", 6);
-                return;
-            case "Digit7":
-                this.emit("toggle_fg", 7);
-                return;
+        if (this.use_number_keys_for_colors) {
+            switch (event.code) {
+                case "Digit0":
+                    this.emit("toggle_fg", 0);
+                    return;
+                case "Digit1":
+                    this.emit("toggle_fg", 1);
+                    return;
+                case "Digit2":
+                    this.emit("toggle_fg", 2);
+                    return;
+                case "Digit3":
+                    this.emit("toggle_fg", 3);
+                    return;
+                case "Digit4":
+                    this.emit("toggle_fg", 4);
+                    return;
+                case "Digit5":
+                    this.emit("toggle_fg", 5);
+                    return;
+                case "Digit6":
+                    this.emit("toggle_fg", 6);
+                    return;
+                case "Digit7":
+                    this.emit("toggle_fg", 7);
+                    return;
+            }
         }
         switch (event.key) {
             case "c": case "C":
@@ -86,6 +88,9 @@ class KeyboardEvent extends events.EventEmitter {
                 event.preventDefault();
                 return;
         }
+        
+        // If color shortcuts are disabled, or if this is not a color shortcut, use key_typed
+        this.key_typed(event);
     }
 
     alt_key(event) {
@@ -135,30 +140,6 @@ class KeyboardEvent extends events.EventEmitter {
             case "F10":
                 this.emit("change_fkeys", event.shiftKey ? 19 : 9);
                 return;
-            case "Digit0":
-                this.emit("toggle_bg", 0);
-                return;
-            case "Digit1":
-                this.emit("toggle_bg", 1);
-                return;
-            case "Digit2":
-                this.emit("toggle_bg", 2);
-                return;
-            case "Digit3":
-                this.emit("toggle_bg", 3);
-                return;
-            case "Digit4":
-                this.emit("toggle_bg", 4);
-                return;
-            case "Digit5":
-                this.emit("toggle_bg", 5);
-                return;
-            case "Digit6":
-                this.emit("toggle_bg", 6);
-                return;
-            case "Digit7":
-                this.emit("toggle_bg", 7);
-                return;
             case "ArrowUp":
                 this.emit("insert_row");
                 event.preventDefault();
@@ -176,6 +157,38 @@ class KeyboardEvent extends events.EventEmitter {
                 event.preventDefault();
                 return;
         }
+        
+        if (this.use_number_keys_for_colors) {
+            switch (event.code) {
+                case "Digit0":
+                    this.emit("toggle_bg", 0);
+                    return;
+                case "Digit1":
+                    this.emit("toggle_bg", 1);
+                    return;
+                case "Digit2":
+                    this.emit("toggle_bg", 2);
+                    return;
+                case "Digit3":
+                    this.emit("toggle_bg", 3);
+                    return;
+                case "Digit4":
+                    this.emit("toggle_bg", 4);
+                    return;
+                case "Digit5":
+                    this.emit("toggle_bg", 5);
+                    return;
+                case "Digit6":
+                    this.emit("toggle_bg", 6);
+                    return;
+                case "Digit7":
+                    this.emit("toggle_bg", 7);
+                    return;
+            }
+        }
+        
+        // If color shortcuts are disabled, or if this is not a color shortcut, use key_typed
+        this.key_typed(event);
     }
 
     meta_key(event) {
@@ -446,6 +459,7 @@ class KeyboardEvent extends events.EventEmitter {
         this.insert_mode = false;
         this.overwrite_mode = false;
         this.q_key_insert = false;
+        this.use_number_keys_for_colors = true;
         this.alt_numpad_active = false;
         this.alt_numpad_buffer = "";
         on("use_numpad", (event, value) => this.use_numpad = value);
@@ -453,6 +467,7 @@ class KeyboardEvent extends events.EventEmitter {
         on("insert_mode", (event, value) => this.insert_mode = value);
         on("overwrite_mode", (event, value) => this.overwrite_mode = value);
         on("q_key_insert", (event, value) => this.q_key_insert = value);
+        on("use_number_keys_for_colors", (event, value) => this.use_number_keys_for_colors = value);
         on("f_key", (event, value) => this.emit("f_key", value));
         on("change_encoding", (event, encoding) => {
             libtextmode.encoding_manager.set_encoding(encoding);

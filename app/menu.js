@@ -493,6 +493,8 @@ function colors_menu_template(win) {
             { type: "separator" },
             { label: "Use iCE Colors (stop blinking)", id: "ice_colors", accelerator: "CmdorCtrl+E", click(item) { win.send("ice_colors", item.checked); }, type: "checkbox", checked: true },
             { type: "separator" },
+            { label: "Use Alt/Ctrl + Number Key Shortcuts for Colors", id: "use_number_keys_for_colors", click(item) { win.send("use_number_keys_for_colors", item.checked); }, type: "checkbox", checked: true },
+            { type: "separator" },
             { label: "Remove iCE Colors as New Document", id: "remove_ice_colors", click(item) { win.send("remove_ice_colors"); } },
         ]
     };
@@ -506,12 +508,12 @@ function font_menu_template(win) {
             { label: "Change Font (Default)", submenu: font_menu_items(win) },
             { label: "Change Font (Viler's VGA textmode fonts)", submenu: viler_font_menu_items(win) },
             { label: "Change Font (Custom & DiscMaster Amiga)", submenu: custom_font_menu_items(win) },
-            { label: "Reset to default font\u2026", id: "resetxbinfont", click(item) { win.send("change_font", "IBM VGA"); } },
+            { label: "Reset to Default Font\u2026", id: "resetxbinfont", click(item) { win.send("change_font", "IBM VGA"); } },
             { type: "separator" },
             { label: "Load Custom Font\u2026", id: "loadcustomfont", click(item) { win.send("load_custom_font"); } },
-            { label: "Export font\u2026", id: "export_font", click(item) { win.send("export_font"); } },
-            { label: "Export font as PNG\u2026", id: "export_font_png", click(item) { win.send("export_font_png"); } },
-            { label: "Import font from image (GIF/PNG)\u2026", id: "import_font", click(item) { win.send("import_font"); } },
+            { label: "Export Font\u2026", id: "export_font", click(item) { win.send("export_font"); } },
+            { label: "Export Font as PNG\u2026", id: "export_font_png", click(item) { win.send("export_font_png"); } },
+            { label: "Import Font from Image (GIF/PNG)\u2026", id: "import_font", click(item) { win.send("import_font"); } },
             { type: "separator" },
             { label: "Use 9px Font", id: "use_9px_font", accelerator: "CmdorCtrl+F", click(item) { win.send("use_9px_font", item.checked); }, type: "checkbox", checked: false },
         ]
