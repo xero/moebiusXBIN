@@ -106,7 +106,7 @@ async function open_file(file) {
     win.send("open_file", file);
 }
 electron.ipcMain.on("open_file", (event, {file}) => open_file(file));
-electron.ipcMain.on("open_tutorial", async (event) => {
+async function open_tutorial() {
     const dev = require("electron-is-dev");
     const tutorial_path = dev ? "./build/ans/tutorial.xb" : `${process.resourcesPath}/ans/tutorial.xb`;
     const fs = require("fs");
@@ -125,7 +125,9 @@ electron.ipcMain.on("open_tutorial", async (event) => {
     } catch (error) {
         console.error("Failed to load tutorial:", error);
     }
-});
+}
+
+electron.ipcMain.on("open_tutorial", (event) => open_tutorial());
 
 function open_in_new_window(win) {
     if (win && docs[win.id].open_in_current_window) {
@@ -220,6 +222,7 @@ async function show_splash_screen() {
     }
 }
 
+menu.on("open_tutorial", open_tutorial);
 menu.on("show_cheatsheet", () => window.static("app/html/cheatsheet.html", { width: 640, height: 816, ...frameless }));
 menu.on("show_acknowledgements", () => window.static("app/html/acknowledgements.html", { width: 640, height: 688, ...frameless }));
 menu.on("show_numpad_mappings", () => window.static("app/html/numpad_mappings.html", { width: 640, height: 400, ...frameless }));
