@@ -8,8 +8,8 @@ MoebiusXBIN is an ASCII / text-mode art editor for MacOS, Linux and Windows, wit
 - Moebius XBIN: https://github.com/hlotvonen/moebius/releases
 
 ## How to use MoebiusXBIN?
-- You can click to open the tutorial for MoebiusXBIN when you open the app, either by clicking the Tutorial button in the splash screen, or from the Help menu.
-- You can view all the (updated) keyboard shortcuts from the Help menu, and selecting "Keyboard shortcut cheatsheet"
+- MoebiusXBIN comes with a new tutorial geared towards complete beginners. When you open the app, either by click the "Tutorial" button in the splash screen, or select it from the Help menu.
+- Check the "Keyboard shortcut cheatsheet" from the Help menu
 
 ## How does it differ from Moebius (blocktronics/moebius)?
 This is a *forked version* of [Moebius](https://github.com/blocktronics/moebius), a classic ASCII and ANSI art editor. MoebiusXBIN extends it by supporting custom colors and fonts with the [XBIN](https://github.com/radman1/xbin/blob/master/XBIN.TXT) format.
