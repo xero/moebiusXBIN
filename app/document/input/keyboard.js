@@ -409,6 +409,8 @@ class KeyboardEvent extends events.EventEmitter {
                 this.chat(this.chat_input.value);
                 this.chat_input.value = "";
             }
+        } else if (event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
+            this.key_typed(event);
         } else if (event.ctrlKey && !event.altKey && !event.metaKey) {
             this.ctrl_key(event);
         } else if (event.altKey && !event.ctrlKey && !event.metaKey) {

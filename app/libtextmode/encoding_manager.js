@@ -2,37 +2,81 @@ const iconv = require('iconv-lite');
 const { cp437_to_unicode, unicode_to_cp437 } = require('./encodings');
 const CP864ArabicShaper = require('./cp864_arabic_shaper');
 
-// Available encodings based on the fonts in the IBM folder
+// All available encodings supported by iconv-lite
 const AVAILABLE_ENCODINGS = [
-    // STANDARD IBM CODE PAGES
-    "CP437", "CP737", "CP775", "CP850", "CP851", "CP852", "CP853", 
-    "CP855", "CP857", "CP860", "CP861", "CP862", "CP863", "CP864", 
-    "CP865", "CP866", "CP869",
+    // UNICODE ENCODINGS
+    "UTF8", "UTF7", "UTF7-IMAP", "UTF16LE", "UTF16BE", "UTF-16", "UCS2", "CESU8",
+    "UCS-4", "UTF-32LE", "UTF-32BE", "ASCII",
+    
+    // STANDARD IBM/DOS CODE PAGES
+    "CP437", "CP720", "CP737", "CP775", "CP808", "CP850", "CP851", "CP852", "CP853",
+    "CP855", "CP856", "CP857", "CP858", "CP860", "CP861", "CP862", "CP863", "CP864",
+    "CP865", "CP866", "CP869", "CP922", "CP1046", "CP1124", "CP1125", "CP1129",
+    "CP1133", "CP1161", "CP1162", "CP1163",
+    
     // WINDOWS CODE PAGES
-    "CP1250", "CP1251", "CP1252", "CP1253", "CP1254", "CP1257",
+    "CP874", "CP1250", "CP1251", "CP1252", "CP1253", "CP1254", "CP1255", "CP1256",
+    "CP1257", "CP1258",
+    
     // ISO 8859 SERIES
-    "ISO88591", "ISO88592", "ISO88594", "ISO88595", "ISO88597",
-    "ISO88598", "ISO885915",
-    // KOI ENCODINGS
-    "KOI8R", "KOI8U",
-    // OTHER STANDARD ENCODINGS
-    "ASCII", "UTF8", "UTF16LE", "UTF16BE", "LATIN1",
-    // REGIONAL/LANGUAGE SPECIFIC THAT MAP TO STANDARD ENCODINGS
-    "MACINTOSH", "MACROMAN"
+    "ISO-8859-1", "ISO-8859-2", "ISO-8859-3", "ISO-8859-4", "ISO-8859-5", "ISO-8859-6",
+    "ISO-8859-7", "ISO-8859-8", "ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
+    "ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "LATIN1",
+    
+    // KOI8 ENCODINGS
+    "KOI8-R", "KOI8-U", "KOI8-RU", "KOI8-T",
+    
+    // MACINTOSH ENCODINGS
+    "MACINTOSH", "MACROMAN", "MACCROATIAN", "MACCYRILLIC", "MACGREEK", "MACICELAND",
+    "MACROMANIA", "MACTHAI", "MACTURKISH", "MACUKRAINE", "MACCENTEURO",
+    
+    // JAPANESE ENCODINGS
+    "Shift_JIS", "Windows-31j", "CP932", "EUC-JP",
+    
+    // CHINESE SIMPLIFIED ENCODINGS
+    "GB2312", "GBK", "GB18030", "CP936", "EUC-CN",
+    
+    // KOREAN ENCODINGS
+    "KS_C_5601", "CP949", "EUC-KR",
+    
+    // CHINESE TRADITIONAL ENCODINGS
+    "Big5", "Big5-HKSCS", "CP950", "EUC-TW",
+    
+    // OTHER SINGLE-BYTE ENCODINGS
+    "ARMSCII8", "RK1048", "TCVN", "GEORGIANACADEMY", "GEORGIANPS", "PT154", "VISCII",
+    "ISO646CN", "ISO646JP", "HPROMAN8", "TIS620"
 ];
 
 // Encoding descriptions for menu display
 const ENCODING_DESCRIPTIONS = {
-    // STANDARD IBM CODE PAGES
+    // UNICODE ENCODINGS
+    "UTF8": "UTF-8 (Unicode)",
+    "UTF7": "UTF-7 (Unicode)",
+    "UTF7-IMAP": "UTF-7 IMAP (Unicode)",
+    "UTF16LE": "UTF-16 LE (Unicode)",
+    "UTF16BE": "UTF-16 BE (Unicode)",
+    "UTF-16": "UTF-16 with BOM (Unicode)",
+    "UCS2": "UCS-2 (Unicode)",
+    "CESU8": "CESU-8 (Unicode)",
+    "UCS-4": "UCS-4 / UTF-32 with BOM",
+    "UTF-32LE": "UTF-32 LE (Unicode)",
+    "UTF-32BE": "UTF-32 BE (Unicode)",
+    "ASCII": "ASCII (7-bit)",
+    
+    // STANDARD IBM/DOS CODE PAGES
     "CP437": "CP437 (Original IBM PC)",
+    "CP720": "CP720 (Arabic)",
     "CP737": "CP737 (Greek)",
     "CP775": "CP775 (Baltic)",
+    "CP808": "CP808 (Russian/Cyrillic)",
     "CP850": "CP850 (Latin-1)",
     "CP851": "CP851 (Greek)",
     "CP852": "CP852 (Latin-2)",
     "CP853": "CP853 (Latin-3)",
     "CP855": "CP855 (Cyrillic)",
+    "CP856": "CP856 (Hebrew)",
     "CP857": "CP857 (Turkish)",
+    "CP858": "CP858 (Latin-1 + Euro)",
     "CP860": "CP860 (Portuguese)",
     "CP861": "CP861 (Icelandic)",
     "CP862": "CP862 (Hebrew)",
@@ -41,33 +85,147 @@ const ENCODING_DESCRIPTIONS = {
     "CP865": "CP865 (Nordic)",
     "CP866": "CP866 (Russian)",
     "CP869": "CP869 (Greek)",
+    "CP922": "CP922 (Estonian)",
+    "CP1046": "CP1046 (Arabic)",
+    "CP1124": "CP1124 (Ukrainian)",
+    "CP1125": "CP1125 (Ukrainian)",
+    "CP1129": "CP1129 (Vietnamese)",
+    "CP1133": "CP1133 (Lao)",
+    "CP1161": "CP1161 (Thai)",
+    "CP1162": "CP1162 (Thai)",
+    "CP1163": "CP1163 (Vietnamese)",
+    
     // WINDOWS CODE PAGES
+    "CP874": "CP874 (Thai)",
     "CP1250": "CP1250 (Central European)",
     "CP1251": "CP1251 (Cyrillic)",
     "CP1252": "CP1252 (Western European)",
     "CP1253": "CP1253 (Greek)",
     "CP1254": "CP1254 (Turkish)",
+    "CP1255": "CP1255 (Hebrew)",
+    "CP1256": "CP1256 (Arabic)",
     "CP1257": "CP1257 (Baltic)",
+    "CP1258": "CP1258 (Vietnamese)",
+    
     // ISO 8859 SERIES
-    "ISO88591": "ISO-8859-1 (Latin-1)",
-    "ISO88592": "ISO-8859-2 (Latin-2)",
-    "ISO88594": "ISO-8859-4 (Baltic)",
-    "ISO88595": "ISO-8859-5 (Cyrillic)",
-    "ISO88597": "ISO-8859-7 (Greek)",
-    "ISO88598": "ISO-8859-8 (Hebrew)",
-    "ISO885915": "ISO-8859-15 (Latin-9)",
-    // KOI ENCODINGS
-    "KOI8R": "KOI8-R (Russian)",
-    "KOI8U": "KOI8-U (Ukrainian)",
-    // OTHER STANDARD ENCODINGS
-    "ASCII": "ASCII (7-bit)",
-    "UTF8": "UTF-8 (Unicode)",
-    "UTF16LE": "UTF-16 LE (Unicode)",
-    "UTF16BE": "UTF-16 BE (Unicode)",
+    "ISO-8859-1": "ISO-8859-1 (Latin-1 / Western European)",
+    "ISO-8859-2": "ISO-8859-2 (Latin-2 / Central European)",
+    "ISO-8859-3": "ISO-8859-3 (Latin-3 / South European)",
+    "ISO-8859-4": "ISO-8859-4 (Latin-4 / North European)",
+    "ISO-8859-5": "ISO-8859-5 (Cyrillic)",
+    "ISO-8859-6": "ISO-8859-6 (Arabic)",
+    "ISO-8859-7": "ISO-8859-7 (Greek)",
+    "ISO-8859-8": "ISO-8859-8 (Hebrew)",
+    "ISO-8859-9": "ISO-8859-9 (Latin-5 / Turkish)",
+    "ISO-8859-10": "ISO-8859-10 (Latin-6 / Nordic)",
+    "ISO-8859-11": "ISO-8859-11 (Thai)",
+    "ISO-8859-13": "ISO-8859-13 (Latin-7 / Baltic)",
+    "ISO-8859-14": "ISO-8859-14 (Latin-8 / Celtic)",
+    "ISO-8859-15": "ISO-8859-15 (Latin-9 / Western European + Euro)",
+    "ISO-8859-16": "ISO-8859-16 (Latin-10 / South-Eastern European)",
     "LATIN1": "Latin-1 (ISO-8859-1)",
-    // REGIONAL/LANGUAGE SPECIFIC
+    
+    // KOI8 ENCODINGS
+    "KOI8-R": "KOI8-R (Russian)",
+    "KOI8-U": "KOI8-U (Ukrainian)",
+    "KOI8-RU": "KOI8-RU (Russian/Ukrainian)",
+    "KOI8-T": "KOI8-T (Tajik)",
+    
+    // MACINTOSH ENCODINGS
     "MACINTOSH": "Macintosh Roman",
-    "MACROMAN": "Mac Roman"
+    "MACROMAN": "Mac Roman",
+    "MACCROATIAN": "Mac Croatian",
+    "MACCYRILLIC": "Mac Cyrillic",
+    "MACGREEK": "Mac Greek",
+    "MACICELAND": "Mac Icelandic",
+    "MACROMANIA": "Mac Romanian",
+    "MACTHAI": "Mac Thai",
+    "MACTURKISH": "Mac Turkish",
+    "MACUKRAINE": "Mac Ukrainian",
+    "MACCENTEURO": "Mac Central European",
+    
+    // JAPANESE ENCODINGS
+    "Shift_JIS": "Shift JIS (Japanese)",
+    "Windows-31j": "Windows-31J (Japanese)",
+    "CP932": "CP932 (Japanese Shift JIS)",
+    "EUC-JP": "EUC-JP (Japanese)",
+    
+    // CHINESE SIMPLIFIED ENCODINGS
+    "GB2312": "GB2312 (Chinese Simplified)",
+    "GBK": "GBK (Chinese Simplified Extended)",
+    "GB18030": "GB18030 (Chinese National Standard)",
+    "CP936": "CP936 (Chinese Simplified)",
+    "EUC-CN": "EUC-CN (Chinese Simplified)",
+    
+    // KOREAN ENCODINGS
+    "KS_C_5601": "KS C 5601 (Korean)",
+    "CP949": "CP949 (Korean)",
+    "EUC-KR": "EUC-KR (Korean)",
+    
+    // CHINESE TRADITIONAL ENCODINGS
+    "Big5": "Big5 (Chinese Traditional)",
+    "Big5-HKSCS": "Big5-HKSCS (Chinese Traditional + Hong Kong)",
+    "CP950": "CP950 (Chinese Traditional)",
+    "EUC-TW": "EUC-TW (Chinese Traditional)",
+    
+    // OTHER SINGLE-BYTE ENCODINGS
+    "ARMSCII8": "ARMSCII-8 (Armenian)",
+    "RK1048": "RK1048 (Kazakh)",
+    "TCVN": "TCVN (Vietnamese)",
+    "GEORGIANACADEMY": "Georgian Academy",
+    "GEORGIANPS": "Georgian PS",
+    "PT154": "PT154 (Cyrillic Asian)",
+    "VISCII": "VISCII (Vietnamese)",
+    "ISO646CN": "ISO646-CN (Chinese)",
+    "ISO646JP": "ISO646-JP (Japanese)",
+    "HPROMAN8": "HP Roman-8",
+    "TIS620": "TIS-620 (Thai)"
+};
+
+// Encoding groups for menu organization
+const ENCODING_GROUPS = {
+    "Unicode Encodings": [
+        "UTF8", "UTF7", "UTF7-IMAP", "UTF16LE", "UTF16BE", "UTF-16", "UCS2", "CESU8",
+        "UCS-4", "UTF-32LE", "UTF-32BE", "ASCII"
+    ],
+    "IBM/DOS Code Pages": [
+        "CP437", "CP720", "CP737", "CP775", "CP808", "CP850", "CP851", "CP852", "CP853",
+        "CP855", "CP856", "CP857", "CP858", "CP860", "CP861", "CP862", "CP863", "CP864",
+        "CP865", "CP866", "CP869", "CP922", "CP1046", "CP1124", "CP1125", "CP1129",
+        "CP1133", "CP1161", "CP1162", "CP1163"
+    ],
+    "Windows Code Pages": [
+        "CP874", "CP1250", "CP1251", "CP1252", "CP1253", "CP1254", "CP1255", "CP1256",
+        "CP1257", "CP1258"
+    ],
+    "ISO 8859 Series": [
+        "ISO-8859-1", "ISO-8859-2", "ISO-8859-3", "ISO-8859-4", "ISO-8859-5", "ISO-8859-6",
+        "ISO-8859-7", "ISO-8859-8", "ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
+        "ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "LATIN1"
+    ],
+    "KOI8 Encodings": [
+        "KOI8-R", "KOI8-U", "KOI8-RU", "KOI8-T"
+    ],
+    "Macintosh Encodings": [
+        "MACINTOSH", "MACROMAN", "MACCROATIAN", "MACCYRILLIC", "MACGREEK", "MACICELAND",
+        "MACROMANIA", "MACTHAI", "MACTURKISH", "MACUKRAINE", "MACCENTEURO"
+    ],
+    "Japanese Encodings": [
+        "Shift_JIS", "Windows-31j", "CP932", "EUC-JP"
+    ],
+    "Chinese Simplified": [
+        "GB2312", "GBK", "GB18030", "CP936", "EUC-CN"
+    ],
+    "Korean Encodings": [
+        "KS_C_5601", "CP949", "EUC-KR"
+    ],
+    "Chinese Traditional": [
+        "Big5", "Big5-HKSCS", "CP950", "EUC-TW"
+    ],
+    "Other Encodings": [
+        "ARMSCII8", "RK1048", "TCVN", "GEORGIANACADEMY", "GEORGIANPS", "PT154", "VISCII",
+        "ISO646CN", "ISO646JP", "HPROMAN8", "TIS620"
+    ]
 };
 
 let current_encoding = 'CP437';
@@ -94,6 +252,10 @@ function get_available_encodings() {
 
 function get_encoding_description(encoding) {
     return ENCODING_DESCRIPTIONS[encoding] || encoding;
+}
+
+function get_encoding_groups() {
+    return ENCODING_GROUPS;
 }
 
 // Helper function to check if a character is Arabic
@@ -327,8 +489,10 @@ module.exports = {
     get_encoding,
     get_available_encodings,
     get_encoding_description,
+    get_encoding_groups,
     unicode_to_encoding,
     encoding_to_unicode,
     apply_contextual_shaping,
-    AVAILABLE_ENCODINGS
+    AVAILABLE_ENCODINGS,
+    ENCODING_GROUPS
 };
