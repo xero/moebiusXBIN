@@ -1,11 +1,11 @@
 {
   "name": "moebius",
   "type": "commonjs",
-  "version": "2.0.0",
-  "description": "Modern ANSI Art Editor",
+  "version": "2.2.0",
+  "description": "Modern ASCII Art Editor with custom font and color support",
   "repository": {
     "type": "git",
-    "url": "https://github.com/blocktronics/moebius.git"
+    "url": "https://github.com/hlotvonen/moebius.git"
   },
   "main": "app/moebius.js",
   "scripts": {
