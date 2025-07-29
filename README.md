@@ -2,7 +2,7 @@
 # Moebius XBIN 
 MoebiusXBIN is an ASCII / text-mode graphics editor for MacOS, Linux and Windows, with support for custom fonts and colors. 
 
-![Screenshot of MoebiusXBIN UI][https://github.com/hlotvonen/moebius/blob/master/moebiusXBIN_screenshot.png]
+![Screenshot of MoebiusXBIN UI][https://raw.githubusercontent.com/hlotvonen/moebius/refs/heads/master/moebiusXBIN_screenshot.png]
 
 This is a *forked version* of [Moebius](https://github.com/blocktronics/moebius), a classic ASCII and ANSI art editor. MoebiusXBIN extends it by supporting custom colors and fonts with the XBIN format.
 
