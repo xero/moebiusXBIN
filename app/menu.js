@@ -475,6 +475,8 @@ function colors_menu_template(win) {
             { label: "Lospec Palette Browser\u2026", id: "palette_browser", accelerator: "CmdorCtrl+Shift+P", click(item) { win.send("open_palette_browser"); } },
             { label: "Load Lospec palette", submenu: lospec_palette_menu_items(win) },
             { type: "separator" },
+            { label: "Reset to Default Palette", id: "reset_to_default_palette", click(item) { win.send("reset_to_default_palette"); } },
+            { type: "separator" },
             { label: "Save Palette as Hex\u2026", id: "save_palette_hex", click(item) { win.send("save_palette_hex"); } },
             { label: "Load Palette from Hex\u2026", id: "load_palette_hex", click(item) { win.send("load_palette_hex"); } },
             { type: "separator" },
