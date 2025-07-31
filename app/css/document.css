@@ -317,6 +317,7 @@ body.dark #charlist {
 }
 #preview {
     grid-area: preview;
+    padding: 0 min(20px, var(--preview-width));
     position: relative;
     background-color: var(--mid-color);
     border-left: 1px solid var(--border-color);
@@ -330,7 +331,6 @@ body.dark #charlist {
 #preview > canvas {
     display: block;
     width: calc(var(--preview-width) - 40px);
-    margin: 0px 20px;
     image-rendering: auto !important;
     pointer-events: none;
 }
