@@ -2,9 +2,9 @@ directories:
   output: dist
   buildResources: build
 
-appId: org.andyherbert.moebius
+appId: fi.heikkilotvonen.moebiusxbin
 productName: MoebiusXBIN
-copyright: Copyright © 2020 Andy Herbert
+copyright: Copyright © 2020 Andy Herbert, 2025 Heikki Lotvonen
 
 extraResources:
   - from: build/ans
@@ -52,15 +52,15 @@ win:
   artifactName: MoebiusXBIN.Setup.exe
   target:
     - target: nsis
-      arch: [x64, ia32]
+      arch: [x64]
     - target: portable
-      arch: [x64, ia32]
+      arch: [x64]
 
 portable:
   artifactName: MoebiusXBIN.exe
 
 linux:
-  artifactName: MoebiusXBIN.${ext}
+  artifactName: MoebiusXBIN-${arch}.${ext}
   target: 
     - target: deb
       arch: [x64, arm64]
@@ -70,7 +70,7 @@ linux:
       arch: [x64, arm64]
     - target: tar.xz
       arch: [x64, arm64]
-  description: Moebius is a new ANSI and ASCII Editor for Linux, MacOS, and Windows. The major feature that differentiates it from PabloDraw is the 'half-block' brush which allows editing in a style closer to Photoshop than a text editor, although you can still use the function and cursor keys to draw with, and you should find that most of the text editing features from PabloDraw are carried over to this editor.
+  description: MoebiusXBIN is an ASCII & text-mode art editor for MacOS, Linux and Windows, with support for custom fonts and colors.
   category: Graphics
 
 electronVersion: 12.0.2
