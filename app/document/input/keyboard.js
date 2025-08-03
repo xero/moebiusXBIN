@@ -187,8 +187,49 @@ class KeyboardEvent extends events.EventEmitter {
             }
         }
         
+        // Check if this is a menu shortcut - if so, don't process as alternative character
+        if (this.isMenuShortcut(event)) {
+            return;
+        }
+        
         // If color shortcuts are disabled, or if this is not a color shortcut, use key_typed
         this.key_typed(event);
+    }
+
+    isMenuShortcut(event) {
+        // Check for Alt-only shortcuts (no other modifiers)
+        if (!event.ctrlKey && !event.metaKey && !event.shiftKey) {
+            switch (event.code) {
+                case "KeyA":  // Alt+A - Select Attribute
+                case "KeyB":  // Alt+B - Start Selection
+                case "KeyC":  // Alt+C - Center Line
+                case "KeyE":  // Alt+E - Erase Row
+                case "KeyF":  // Alt+F - Select Character Under Cursor
+                case "KeyL":  // Alt+L - Left Justify Line
+                case "KeyR":  // Alt+R - Right Justify Line
+                case "KeyU":  // Alt+U - Use Attribute Under Cursor
+                case "KeyX":  // Alt+X - Switch Foreground/Background
+                case "Home":  // Alt+Home - Erase to Start of Row
+                case "End":   // Alt+End - Erase to End of Row
+                case "PageUp":    // Alt+PageUp - Erase to Start of Column
+                case "PageDown":  // Alt+PageDown - Erase to End of Column
+                case "Equal":     // Alt+= - Increase Brush Size
+                case "Minus":     // Alt+- - Decrease Brush Size
+                    return true;
+                case "Digit0":    // Alt+0 - Reset Brush Size (when not used for colors)
+                    return !this.use_number_keys_for_colors;
+            }
+        }
+        
+        // Check for Alt+Shift shortcuts
+        if (!event.ctrlKey && !event.metaKey && event.shiftKey) {
+            switch (event.code) {
+                case "KeyE":  // Alt+Shift+E - Erase Column
+                    return true;
+            }
+        }
+        
+        return false;
     }
 
     meta_key(event) {
