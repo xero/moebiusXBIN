@@ -90,6 +90,26 @@ module.exports = defineConfig({
       },
     },
 
+    /* Visual regression testing project */
+    {
+      name: 'visual-regression',
+      use: {
+        ...devices['Desktop Chrome'],
+        // Standardized settings for consistent screenshots
+        viewport: { width: 1280, height: 720 },
+        deviceScaleFactor: 1,
+        locale: 'en-US',
+        timezone: 'UTC',
+        // Disable animations for consistent captures
+        reducedMotion: 'reduce',
+        // Force consistent font rendering
+        extraHTTPHeaders: {
+          'Accept-Language': 'en-US,en;q=0.9'
+        }
+      },
+      testMatch: '**/visual/*.spec.js'
+    },
+
     /* Test against mobile viewports. */
     {
       name: 'Mobile Chrome',

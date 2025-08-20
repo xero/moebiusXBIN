@@ -38,7 +38,9 @@
     "test:performance": "playwright test --grep=\"performance\"",
     "test:accessibility": "playwright test --grep=\"accessibility\"",
     "test:install": "playwright install",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "test:baselines": "./scripts/generate-baselines.sh",
+    "test:manual": "echo '📋 Manual testing checklist: DOCS/MANUAL_TESTING_CHECKLIST.md'"
   },
   "author": "Andy Herbert <andy.herbert@gmail.com>",
   "license": "Apache-2.0",

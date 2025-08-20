@@ -46,6 +46,18 @@ npm run test:debug         # Run tests in debug mode
 npm run test:headed        # Run tests with browser UI visible
 ```
 
+### Visual Regression Testing
+```bash
+npm run test:visual        # Run visual regression tests
+npm run test:baselines     # Generate new visual baselines
+npx playwright test --update-snapshots  # Update specific screenshots
+```
+
+### Manual Testing
+```bash
+npm run test:manual        # View manual testing checklist
+```
+
 ### View Results
 ```bash
 npm run test:report        # Open test report in browser
@@ -147,6 +159,7 @@ Use the provided fixtures for consistent testing:
 2. **Browser not found**: Run `npm run test:install`
 3. **Port conflicts**: Change port in `vite.config.js`
 4. **Flaky tests**: Add proper wait conditions
+5. **Visual regression failures**: Review diff images, update baselines if changes are intentional
 
 ### Debug Commands
 ```bash
@@ -161,6 +174,36 @@ npx playwright test --trace=on
 
 # Update screenshots
 npx playwright test --update-snapshots
+
+# Generate clean baselines
+npm run test:baselines
 ```
+
+## Manual Testing
+
+In addition to automated tests, manual testing is essential for edge cases:
+
+- **Exotic mobile browsers**: Samsung Internet, UC Browser, Opera Mobile
+- **Real-world PWA installation**: Test installation flow on actual devices  
+- **Accessibility edge cases**: Screen readers, high contrast mode, keyboard navigation
+- **Network edge cases**: Slow connections, corporate proxies, intermittent connectivity
+
+See `DOCS/MANUAL_TESTING_CHECKLIST.md` for detailed manual testing procedures.
+
+## Visual Regression Baselines
+
+### Managing Screenshot Baselines
+
+1. **Generate new baselines**: `npm run test:baselines`
+2. **Review before committing**: Check all screenshots in `app/web/__tests__/fixtures/screenshots/baseline/`
+3. **Update specific screenshots**: `npx playwright test --update-snapshots`
+
+### Baseline Review Checklist
+- [ ] All expected UI elements visible
+- [ ] Fonts loaded correctly (no fallback fonts)
+- [ ] Colors display accurately  
+- [ ] No unexpected scrollbars or clipping
+- [ ] Layout is stable and consistent
+- [ ] No dynamic content (timestamps, session IDs) visible
 
 For detailed documentation, see `DOCS/AUTOMATED_BROWSER_TESTING_STRATEGY.md`.

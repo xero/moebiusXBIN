@@ -603,6 +603,471 @@ export const testData = {
 
 ---
 
+## 📋 MANUAL EXPLORATORY TESTING CHECKLIST
+
+### Edge Cases Not Easily Automated
+
+While automation covers the majority of testing scenarios, certain edge cases require manual validation due to their unpredictable nature or environment-specific behavior.
+
+#### **Critical Manual Testing Scenarios**
+
+##### 1. **Exotic Mobile Browsers** 🔍
+- [ ] **Samsung Internet Browser**: Test file operations and canvas rendering
+- [ ] **Opera Mobile**: Verify touch interactions and PWA installation
+- [ ] **UC Browser**: Check compatibility with ASCII art display
+- [ ] **Xiaomi Browser**: Test font rendering and color accuracy
+- [ ] **Brave Browser**: Validate with ad blockers and privacy settings enabled
+- [ ] **DuckDuckGo Browser**: Ensure functionality with strict privacy mode
+
+**Testing Focus:**
+- Canvas drawing accuracy
+- File System Access API fallbacks
+- Service worker registration
+- Touch gesture recognition
+- Font rendering quality
+
+##### 2. **Real-World PWA Installation** 🏠
+- [ ] **Chrome Desktop**: Install via browser UI and test offline functionality
+- [ ] **Edge Desktop**: Verify taskbar integration and window management
+- [ ] **Safari iOS**: Test Add to Home Screen and standalone mode
+- [ ] **Chrome Android**: Validate installability criteria and splash screen
+- [ ] **Samsung Internet**: Check custom install prompts and shortcuts
+
+**Manual Verification Points:**
+- App icon appears correctly in launcher/taskbar
+- Standalone window launches without browser UI
+- Offline functionality works after installation
+- File associations work (if supported)
+- Update prompts appear appropriately
+
+##### 3. **Accessibility Edge Cases** ♿
+- [ ] **Screen Reader Navigation**: NVDA, JAWS, VoiceOver compatibility
+- [ ] **High Contrast Mode**: Windows high contrast themes
+- [ ] **Zoom Levels**: 200%, 300% zoom without horizontal scrolling
+- [ ] **Voice Control**: Dragon NaturallySpeaking, Windows Speech Recognition
+- [ ] **Switch Navigation**: Keyboard-only and assistive switch devices
+
+**Testing Scenarios:**
+- Navigate entire interface with keyboard only
+- Verify all interactive elements are announced properly
+- Test canvas interaction with assistive technologies
+- Validate color contrast in high contrast modes
+
+##### 4. **Network Edge Cases** 🌐
+- [ ] **Extremely Slow Connections**: 2G network simulation
+- [ ] **Intermittent Connectivity**: Frequent connect/disconnect cycles
+- [ ] **Corporate Proxies**: Restrictive firewall environments
+- [ ] **VPN Connections**: Various VPN providers and exit points
+- [ ] **Captive Portals**: Hotel/airport WiFi authentication
+
+**Manual Test Procedures:**
+- Start large file operations then disconnect network
+- Test service worker cache behavior with proxy restrictions
+- Verify graceful degradation on very slow connections
+- Check error messaging for network failures
+
+##### 5. **Hardware-Specific Scenarios** 💻
+- [ ] **Low-End Devices**: Test on older tablets and phones
+- [ ] **High-DPI Displays**: 4K monitors, Retina displays
+- [ ] **Multiple Monitors**: Drag between screens, resolution changes
+- [ ] **Touch-Enabled Laptops**: Hybrid touch/mouse interactions
+- [ ] **Gaming Peripherals**: Unusual mouse configurations
+
+**Focus Areas:**
+- Performance on resource-constrained devices
+- Canvas scaling on high-DPI displays
+- Window management across multiple screens
+- Touch and mouse interaction mixing
+
+#### **Weekly Manual Testing Schedule**
+
+##### **Monday: Mobile Browser Testing** (30 minutes)
+- Test on 2-3 exotic mobile browsers
+- Focus on current week's feature changes
+- Document any browser-specific issues
+
+##### **Wednesday: PWA Installation Testing** (20 minutes)
+- Install on different platforms
+- Test one complete user workflow offline
+- Verify update mechanisms
+
+##### **Friday: Accessibility Spot Check** (25 minutes)
+- Navigate with keyboard only
+- Test screen reader compatibility
+- Check high contrast mode
+
+#### **Manual Testing Report Template**
+
+```markdown
+## Manual Testing Report - [Date]
+
+### Browser: [Browser Name/Version]
+### Platform: [OS/Device]
+### Scenario: [Test Scenario]
+
+#### Results:
+- ✅ **Working**: [List working features]
+- ⚠️ **Issues**: [List any problems found]
+- ❌ **Broken**: [List broken functionality]
+
+#### Notes:
+[Additional observations, quirks, or recommendations]
+
+#### Screenshots:
+[Attach relevant screenshots if issues found]
+```
+
+---
+
+## 🔄 BROWSER UPDATE MAINTENANCE STRATEGY
+
+### Keeping Tests Current with Browser Evolution
+
+Browser APIs and behaviors evolve rapidly. This strategy ensures our test suite remains effective as browsers update.
+
+#### **Monthly Browser Update Review** 📅
+
+##### **First Tuesday of Each Month:**
+1. **Check Browser Release Notes**
+   - Chrome: Review Chrome Platform Status
+   - Firefox: Check Firefox Release Notes  
+   - Safari: Monitor WebKit Feature Status
+   - Edge: Review Edge Developer News
+
+2. **Identify Relevant Changes**
+   - New APIs that might benefit MoebiusXBIN
+   - Deprecated features we currently use
+   - Changed behavior in existing APIs
+   - New security restrictions
+
+3. **Update Test Configuration**
+   ```javascript
+   // Example: Update minimum browser versions
+   const BROWSER_SUPPORT = {
+     chrome: '90+',      // Updated from 86+
+     firefox: '91+',     // Updated from 88+
+     safari: '15+',      // Updated from 14+
+     edge: '90+'         // Updated from 86+
+   };
+   ```
+
+#### **API Change Response Procedures** 🔧
+
+##### **When File System Access API Changes:**
+```javascript
+// Keep compatibility tests updated
+test('should handle File System Access API changes', async ({ page, browserName }) => {
+  const hasNativeAPI = await page.evaluate(() => 'showOpenFilePicker' in window);
+  
+  if (hasNativeAPI) {
+    // Test current API implementation
+    await testFileSystemAPI(page);
+  } else {
+    // Test fallback implementation
+    await testFileInputFallback(page);
+  }
+  
+  // Verify graceful degradation regardless of API availability
+  expect(await canOpenFiles(page)).toBe(true);
+});
+```
+
+##### **When Canvas API Changes:**
+```javascript
+// Update canvas tests for new capabilities
+test('should handle canvas API evolution', async ({ page }) => {
+  const canvasFeatures = await page.evaluate(() => ({
+    offscreenCanvas: 'OffscreenCanvas' in window,
+    webGL2: !!document.createElement('canvas').getContext('webgl2'),
+    colorSpace: 'colorSpace' in document.createElement('canvas').getContext('2d')
+  }));
+  
+  // Adapt tests based on available features
+  if (canvasFeatures.colorSpace) {
+    await testColorSpaceHandling(page);
+  }
+});
+```
+
+#### **Automated Browser Update Detection** 🤖
+
+##### **GitHub Action for Browser Tracking:**
+```yaml
+name: Browser Update Monitor
+on:
+  schedule:
+    - cron: '0 9 * * MON'  # Every Monday at 9 AM
+
+jobs:
+  check-browser-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Chrome Updates
+        run: |
+          # Script to check Chrome stable channel
+          # Alert if major version change detected
+      
+      - name: Update Playwright
+        run: |
+          npm update @playwright/test
+          npx playwright install
+      
+      - name: Run compatibility tests
+        run: npm run test:compatibility
+      
+      - name: Create issue if tests fail
+        if: failure()
+        # Auto-create GitHub issue for investigation
+```
+
+#### **Feature Flag Strategy** 🚩
+
+Implement feature flags for new browser capabilities:
+
+```javascript
+// app/web/src/utils/browser-features.js
+export const BROWSER_FEATURES = {
+  fileSystemAccess: () => 'showOpenFilePicker' in window,
+  offscreenCanvas: () => 'OffscreenCanvas' in window,
+  webShare: () => 'share' in navigator,
+  // Add new features as browsers evolve
+};
+
+// Use in tests and application code
+test('should use appropriate APIs based on browser support', async ({ page }) => {
+  const features = await page.evaluate(() => ({
+    fileSystem: 'showOpenFilePicker' in window,
+    webShare: 'share' in navigator
+  }));
+  
+  if (features.fileSystem) {
+    await testModernFileAPI(page);
+  } else {
+    await testFallbackFileAPI(page);
+  }
+});
+```
+
+---
+
+## 📸 VISUAL REGRESSION BASELINE MANAGEMENT
+
+### Establishing and Maintaining Screenshot Baselines
+
+Visual regression testing requires careful baseline management to avoid false positives while catching real UI issues.
+
+#### **Initial Baseline Creation Process** 🎯
+
+##### **Step 1: Environment Standardization**
+Before creating baselines, ensure consistent rendering environment:
+
+```javascript
+// playwright.config.js - Visual testing project
+{
+  name: 'visual-regression',
+  use: {
+    ...devices['Desktop Chrome'],
+    // Standardize for consistent screenshots
+    viewport: { width: 1280, height: 720 },
+    deviceScaleFactor: 1,
+    locale: 'en-US',
+    timezone: 'UTC',
+    // Disable animations for consistent captures
+    reducedMotion: 'reduce',
+  },
+  testMatch: '**/visual/*.spec.js'
+}
+```
+
+##### **Step 2: Baseline Generation Script**
+```bash
+#!/bin/bash
+# scripts/generate-baselines.sh
+
+echo "🎯 Generating visual regression baselines..."
+
+# Ensure clean state
+git checkout main
+npm ci
+npm run build
+
+# Generate baselines in controlled environment
+export PLAYWRIGHT_UPDATE_SNAPSHOTS=1
+npx playwright test visual/ --project=visual-regression
+
+# Review and commit baselines
+echo "📸 Baselines generated. Please review screenshots before committing."
+```
+
+##### **Step 3: Baseline Review Checklist**
+Before committing new baselines:
+
+- [ ] **UI Elements Present**: All expected elements visible
+- [ ] **Typography Correct**: Fonts load properly, no fallback fonts
+- [ ] **Colors Accurate**: Color palette displays correctly
+- [ ] **Layout Stable**: No unexpected scrollbars or clipping
+- [ ] **Cross-Component Consistency**: Similar elements look identical
+- [ ] **Browser-Specific Rendering**: Account for browser differences
+
+#### **Screenshot Organization Structure** 📁
+
+```
+app/web/__tests__/fixtures/screenshots/
+├── baseline/
+│   ├── chromium/
+│   │   ├── editor-main-interface.png
+│   │   ├── color-palette-expanded.png
+│   │   ├── file-menu-open.png
+│   │   └── mobile-layout-portrait.png
+│   ├── firefox/
+│   │   ├── editor-main-interface.png
+│   │   └── [browser-specific variations]
+│   └── webkit/
+│       ├── editor-main-interface.png
+│       └── [safari-specific variations]
+├── diff/                    # Generated on test failure
+├── actual/                  # Generated during test runs
+└── docs/                   # Documentation screenshots
+    ├── baseline-review-guide.md
+    └── common-differences.md
+```
+
+#### **Smart Baseline Update Strategy** 🧠
+
+##### **Automated Baseline Validation:**
+```javascript
+// app/web/__tests__/visual/baseline-validation.spec.js
+test('validate baseline screenshot quality', async ({ page }) => {
+  await page.goto('/');
+  
+  // Wait for all content to load
+  await page.waitForLoadState('networkidle');
+  await page.waitForFunction(() => document.fonts.ready);
+  
+  // Hide dynamic content that changes
+  await page.addStyleTag({
+    content: `
+      .timestamp, .version-info, .session-id { 
+        visibility: hidden !important; 
+      }
+    `
+  });
+  
+  // Take screenshot with consistent naming
+  await expect(page).toHaveScreenshot('editor-main-interface.png', {
+    // Allow small differences for font rendering variations
+    threshold: 0.1,
+    // Mask dynamic content
+    mask: [page.locator('[data-testid="timestamp"]')]
+  });
+});
+```
+
+##### **Baseline Update Workflow:**
+1. **Detect Changes**: CI fails due to visual differences
+2. **Review Differences**: Examine diff images to understand changes
+3. **Validate Changes**: Ensure changes are intentional, not regressions
+4. **Update Selectively**: Only update baselines for intentional changes
+5. **Peer Review**: Have another developer approve baseline updates
+
+#### **Common Visual Regression Scenarios** ⚠️
+
+##### **False Positives to Watch For:**
+```javascript
+// Handle common rendering variations
+test('handle font loading variations', async ({ page }) => {
+  await page.goto('/');
+  
+  // Wait for custom fonts to load fully
+  await page.waitForFunction(() => 
+    document.fonts.check('16px "DOS VGA 437"')
+  );
+  
+  // Take screenshot only after font stability
+  await expect(page).toHaveScreenshot('with-custom-fonts.png');
+});
+
+// Handle animation timing
+test('capture stable UI state', async ({ page }) => {
+  await page.goto('/');
+  
+  // Disable all animations for consistent capture
+  await page.addStyleTag({
+    content: `
+      *, *::before, *::after {
+        animation-duration: 0s !important;
+        transition-duration: 0s !important;
+      }
+    `
+  });
+  
+  await expect(page).toHaveScreenshot('stable-interface.png');
+});
+```
+
+#### **Baseline Maintenance Schedule** 📅
+
+##### **Weekly: Quick Visual Smoke Test** (10 minutes)
+- Run visual tests on main interface
+- Check for obvious rendering issues
+- Update baselines only for intentional changes
+
+##### **Monthly: Comprehensive Visual Review** (2 hours)
+- Review all baseline screenshots
+- Update for intentional design changes
+- Clean up outdated screenshots
+- Document any browser-specific differences
+
+##### **Quarterly: Cross-Browser Baseline Sync** (4 hours)
+- Compare baselines across all browsers
+- Identify and document acceptable differences
+- Update browser-specific baseline sets
+- Review and update masking strategies
+
+#### **Visual Testing Best Practices** ✨
+
+1. **Consistent Test Environment**
+   - Use fixed viewport sizes
+   - Disable animations during capture
+   - Wait for font loading completion
+   - Hide or mask dynamic content
+
+2. **Meaningful Screenshot Names**
+   ```javascript
+   // Good naming convention
+   'editor-main-interface-with-file-loaded.png'
+   'color-palette-expanded-dark-theme.png'
+   'mobile-layout-portrait-with-menu.png'
+   
+   // Avoid generic names
+   'screenshot1.png'
+   'test.png'
+   ```
+
+3. **Strategic Screenshot Scoping**
+   - Capture specific components, not entire pages
+   - Focus on UI elements likely to change
+   - Include both default and interactive states
+
+4. **Documentation for Future Developers**
+   ```markdown
+   ## Visual Baseline Notes
+   
+   ### editor-main-interface.png
+   - **Purpose**: Validates main editor layout and ASCII art display
+   - **Critical Elements**: Canvas area, toolbar, color palette
+   - **Known Browser Differences**: Firefox shows slightly different scrollbar styling
+   - **Update Triggers**: Canvas size changes, toolbar reorganization
+   
+   ### color-palette-expanded.png  
+   - **Purpose**: Ensures color picker displays correctly
+   - **Critical Elements**: Color swatches, hex values, selection indicator
+   - **Known Browser Differences**: Safari renders color picker with native styling
+   - **Update Triggers**: Color palette redesign, theme changes
+   ```
+
+---
+
 ## 🔧 MAINTENANCE & MONITORING
 
 ### Ongoing Test Maintenance
