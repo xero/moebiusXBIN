@@ -2738,3 +2738,1674 @@ export { dialogSystem, WebDialogSystem };
 - Limited to browser viewport
 
 ---
+
+### 6. Native Menu System Migration
+
+**Complexity:** MEDIUM | **Priority:** MEDIUM | **Effort:** 2-3 weeks
+
+#### Current Electron Pattern
+
+```javascript
+// Application Menu (app/menu.js)
+const electron = require("electron");
+
+const template = [
+    {
+        label: "File",
+        submenu: [
+            { 
+                label: "New", 
+                accelerator: "CmdOrCtrl+N", 
+                click: (item, focusedWindow) => create_window() 
+            },
+            { 
+                label: "Open", 
+                accelerator: "CmdOrCtrl+O", 
+                click: (item, focusedWindow) => open_file() 
+            },
+            { type: "separator" },
+            { 
+                label: "Save", 
+                accelerator: "CmdOrCtrl+S", 
+                click: (item, focusedWindow) => save_file() 
+            },
+            { 
+                label: "Save As...", 
+                accelerator: "CmdOrCtrl+Shift+S", 
+                click: (item, focusedWindow) => save_as() 
+            }
+        ]
+    },
+    {
+        label: "Edit",
+        submenu: [
+            { label: "Undo", accelerator: "CmdOrCtrl+Z", role: "undo" },
+            { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", role: "redo" },
+            { type: "separator" },
+            { label: "Cut", accelerator: "CmdOrCtrl+X", role: "cut" },
+            { label: "Copy", accelerator: "CmdOrCtrl+C", role: "copy" },
+            { label: "Paste", accelerator: "CmdOrCtrl+V", role: "paste" }
+        ]
+    }
+];
+
+const menu = electron.Menu.buildFromTemplate(template);
+electron.Menu.setApplicationMenu(menu);
+
+// Context Menus
+function show_context_menu(x, y, items) {
+    const contextMenu = electron.Menu.buildFromTemplate(items);
+    contextMenu.popup({ x, y });
+}
+
+// TouchBar (macOS)
+const { TouchBar } = require('electron');
+const { TouchBarButton, TouchBarSpacer } = TouchBar;
+
+const touchBar = new TouchBar({
+    items: [
+        new TouchBarButton({
+            label: 'New',
+            backgroundColor: '#7851A9',
+            click: () => create_window()
+        }),
+        new TouchBarSpacer({ size: 'small' }),
+        new TouchBarButton({
+            label: 'Open',
+            backgroundColor: '#7851A9',
+            click: () => open_file()
+        })
+    ]
+});
+```
+
+#### Web/PWA Pattern
+
+```javascript
+// Web Menu System (web-menu-system.js)
+class WebMenuSystem {
+    constructor() {
+        this.shortcuts = new Map();
+        this.contextMenus = new Map();
+        this.menuBar = null;
+        this.activeSubmenu = null;
+        this.setupKeyboardHandlers();
+        this.setupStyles();
+    }
+
+    setupStyles() {
+        if (document.getElementById('menu-styles')) return;
+        
+        const styles = document.createElement('style');
+        styles.id = 'menu-styles';
+        styles.textContent = `
+            .web-menu-bar {
+                background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+                border-bottom: 1px solid #ccc;
+                display: flex;
+                font-family: system-ui, -apple-system, sans-serif;
+                font-size: 13px;
+                user-select: none;
+                position: relative;
+                z-index: 1000;
+            }
+            
+            .web-menu-item {
+                padding: 6px 12px;
+                cursor: pointer;
+                position: relative;
+                color: #333;
+            }
+            
+            .web-menu-item:hover,
+            .web-menu-item.active {
+                background: #4a90e2;
+                color: white;
+            }
+            
+            .web-submenu {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                background: #fff;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                min-width: 180px;
+                z-index: 1001;
+                opacity: 0;
+                transform: translateY(-8px);
+                transition: opacity 0.15s ease, transform 0.15s ease;
+                pointer-events: none;
+            }
+            
+            .web-submenu.show {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+            
+            .web-submenu-item {
+                padding: 8px 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                color: #333;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            
+            .web-submenu-item:last-child {
+                border-bottom: none;
+            }
+            
+            .web-submenu-item:hover {
+                background: #4a90e2;
+                color: white;
+            }
+            
+            .web-submenu-item.disabled {
+                color: #999;
+                cursor: not-allowed;
+            }
+            
+            .web-submenu-item.disabled:hover {
+                background: transparent;
+                color: #999;
+            }
+            
+            .web-submenu-separator {
+                height: 1px;
+                background: #ddd;
+                margin: 4px 0;
+            }
+            
+            .web-submenu-accelerator {
+                font-size: 11px;
+                color: #666;
+                margin-left: 24px;
+            }
+            
+            .web-submenu-item:hover .web-submenu-accelerator {
+                color: rgba(255, 255, 255, 0.8);
+            }
+            
+            .web-context-menu {
+                position: fixed;
+                background: #fff;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                min-width: 160px;
+                z-index: 2000;
+                font-family: system-ui, -apple-system, sans-serif;
+                font-size: 13px;
+            }
+            
+            .web-context-menu-item {
+                padding: 8px 16px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                color: #333;
+            }
+            
+            .web-context-menu-item:hover {
+                background: #4a90e2;
+                color: white;
+            }
+            
+            .web-context-menu-separator {
+                height: 1px;
+                background: #ddd;
+                margin: 4px 0;
+            }
+            
+            /* Dark theme support */
+            @media (prefers-color-scheme: dark) {
+                .web-menu-bar {
+                    background: linear-gradient(to bottom, #3c3c3c, #2c2c2c);
+                    border-bottom-color: #555;
+                }
+                
+                .web-menu-item {
+                    color: #e0e0e0;
+                }
+                
+                .web-submenu,
+                .web-context-menu {
+                    background: #2c2c2c;
+                    border-color: #555;
+                }
+                
+                .web-submenu-item,
+                .web-context-menu-item {
+                    color: #e0e0e0;
+                    border-bottom-color: #444;
+                }
+                
+                .web-submenu-separator,
+                .web-context-menu-separator {
+                    background: #555;
+                }
+                
+                .web-submenu-accelerator {
+                    color: #aaa;
+                }
+            }
+        `;
+        document.head.appendChild(styles);
+    }
+
+    createMenuBar(template) {
+        // Remove existing menu bar
+        if (this.menuBar) {
+            this.menuBar.remove();
+        }
+        
+        // Create menu bar container
+        this.menuBar = document.createElement('div');
+        this.menuBar.className = 'web-menu-bar';
+        
+        // Create menu items
+        template.forEach(item => {
+            const menuItem = this.createMenuItem(item);
+            this.menuBar.appendChild(menuItem);
+        });
+        
+        // Insert at top of body
+        document.body.insertBefore(this.menuBar, document.body.firstChild);
+        
+        // Setup click outside handler
+        this.setupClickOutsideHandler();
+        
+        return this.menuBar;
+    }
+
+    createMenuItem(item) {
+        const menuElement = document.createElement('div');
+        menuElement.className = 'web-menu-item';
+        menuElement.textContent = item.label;
+        
+        if (item.submenu) {
+            const submenu = this.createSubmenu(item.submenu);
+            menuElement.appendChild(submenu);
+            
+            // Show/hide submenu on hover/click
+            menuElement.addEventListener('mouseenter', () => {
+                this.showSubmenu(submenu);
+            });
+            
+            menuElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleSubmenu(submenu);
+            });
+        } else if (item.click) {
+            menuElement.addEventListener('click', () => {
+                this.hideAllSubmenus();
+                item.click();
+            });
+        }
+        
+        // Register keyboard shortcut
+        if (item.accelerator) {
+            this.registerShortcut(item.accelerator, item.click);
+        }
+        
+        return menuElement;
+    }
+
+    createSubmenu(submenuItems) {
+        const submenu = document.createElement('div');
+        submenu.className = 'web-submenu';
+        
+        submenuItems.forEach(item => {
+            if (item.type === 'separator') {
+                const separator = document.createElement('div');
+                separator.className = 'web-submenu-separator';
+                submenu.appendChild(separator);
+            } else {
+                const submenuItem = this.createSubmenuItem(item);
+                submenu.appendChild(submenuItem);
+            }
+        });
+        
+        return submenu;
+    }
+
+    createSubmenuItem(item) {
+        const submenuItem = document.createElement('div');
+        submenuItem.className = 'web-submenu-item';
+        
+        if (item.enabled === false) {
+            submenuItem.classList.add('disabled');
+        }
+        
+        // Label
+        const label = document.createElement('span');
+        label.textContent = item.label;
+        submenuItem.appendChild(label);
+        
+        // Accelerator
+        if (item.accelerator) {
+            const accelerator = document.createElement('span');
+            accelerator.className = 'web-submenu-accelerator';
+            accelerator.textContent = this.formatAccelerator(item.accelerator);
+            submenuItem.appendChild(accelerator);
+            
+            // Register shortcut
+            this.registerShortcut(item.accelerator, item.click);
+        }
+        
+        // Click handler
+        if (item.click && item.enabled !== false) {
+            submenuItem.addEventListener('click', () => {
+                this.hideAllSubmenus();
+                item.click();
+            });
+        }
+        
+        return submenuItem;
+    }
+
+    showSubmenu(submenu) {
+        this.hideAllSubmenus();
+        this.activeSubmenu = submenu;
+        submenu.classList.add('show');
+    }
+
+    hideSubmenu(submenu) {
+        if (submenu) {
+            submenu.classList.remove('show');
+        }
+    }
+
+    toggleSubmenu(submenu) {
+        if (submenu.classList.contains('show')) {
+            this.hideSubmenu(submenu);
+        } else {
+            this.showSubmenu(submenu);
+        }
+    }
+
+    hideAllSubmenus() {
+        const submenus = this.menuBar?.querySelectorAll('.web-submenu') || [];
+        submenus.forEach(submenu => {
+            submenu.classList.remove('show');
+        });
+        
+        // Remove active state from menu items
+        const menuItems = this.menuBar?.querySelectorAll('.web-menu-item') || [];
+        menuItems.forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        this.activeSubmenu = null;
+    }
+
+    setupClickOutsideHandler() {
+        document.addEventListener('click', (e) => {
+            if (!this.menuBar?.contains(e.target)) {
+                this.hideAllSubmenus();
+            }
+        });
+    }
+
+    showContextMenu(x, y, items) {
+        // Remove existing context menu
+        this.hideContextMenu();
+        
+        const contextMenu = document.createElement('div');
+        contextMenu.className = 'web-context-menu';
+        contextMenu.style.left = x + 'px';
+        contextMenu.style.top = y + 'px';
+        
+        items.forEach(item => {
+            if (item.type === 'separator') {
+                const separator = document.createElement('div');
+                separator.className = 'web-context-menu-separator';
+                contextMenu.appendChild(separator);
+            } else {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'web-context-menu-item';
+                
+                // Label
+                const label = document.createElement('span');
+                label.textContent = item.label;
+                menuItem.appendChild(label);
+                
+                // Accelerator
+                if (item.accelerator) {
+                    const accelerator = document.createElement('span');
+                    accelerator.className = 'web-submenu-accelerator';
+                    accelerator.textContent = this.formatAccelerator(item.accelerator);
+                    menuItem.appendChild(accelerator);
+                }
+                
+                // Click handler
+                if (item.click) {
+                    menuItem.addEventListener('click', () => {
+                        this.hideContextMenu();
+                        item.click();
+                    });
+                }
+                
+                contextMenu.appendChild(menuItem);
+            }
+        });
+        
+        // Position context menu within viewport
+        document.body.appendChild(contextMenu);
+        
+        const rect = contextMenu.getBoundingClientRect();
+        if (rect.right > window.innerWidth) {
+            contextMenu.style.left = (x - rect.width) + 'px';
+        }
+        if (rect.bottom > window.innerHeight) {
+            contextMenu.style.top = (y - rect.height) + 'px';
+        }
+        
+        this.activeContextMenu = contextMenu;
+        
+        // Hide on click outside
+        const hideHandler = (e) => {
+            if (!contextMenu.contains(e.target)) {
+                this.hideContextMenu();
+                document.removeEventListener('click', hideHandler);
+            }
+        };
+        
+        setTimeout(() => {
+            document.addEventListener('click', hideHandler);
+        }, 0);
+        
+        return contextMenu;
+    }
+
+    hideContextMenu() {
+        if (this.activeContextMenu) {
+            this.activeContextMenu.remove();
+            this.activeContextMenu = null;
+        }
+    }
+
+    registerShortcut(accelerator, callback) {
+        if (!callback) return;
+        
+        const normalizedKey = this.normalizeAccelerator(accelerator);
+        this.shortcuts.set(normalizedKey, callback);
+    }
+
+    normalizeAccelerator(accelerator) {
+        // Convert Electron accelerator format to web format
+        return accelerator
+            .replace(/CmdOrCtrl/g, navigator.platform.includes('Mac') ? 'Cmd' : 'Ctrl')
+            .replace(/Cmd/g, 'Meta')
+            .replace(/Alt/g, 'Alt')
+            .replace(/Shift/g, 'Shift')
+            .replace(/Ctrl/g, 'Control');
+    }
+
+    formatAccelerator(accelerator) {
+        // Format accelerator for display
+        const isMac = navigator.platform.includes('Mac');
+        
+        return accelerator
+            .replace(/CmdOrCtrl/g, isMac ? '⌘' : 'Ctrl')
+            .replace(/Cmd/g, '⌘')
+            .replace(/Alt/g, isMac ? '⌥' : 'Alt')
+            .replace(/Shift/g, isMac ? '⇧' : 'Shift')
+            .replace(/Ctrl/g, isMac ? '⌃' : 'Ctrl')
+            .replace(/\+/g, '');
+    }
+
+    setupKeyboardHandlers() {
+        document.addEventListener('keydown', (e) => {
+            const key = this.getKeyCombo(e);
+            const handler = this.shortcuts.get(key);
+            
+            if (handler) {
+                e.preventDefault();
+                handler();
+            }
+        });
+    }
+
+    getKeyCombo(event) {
+        const parts = [];
+        
+        if (event.ctrlKey) parts.push('Control');
+        if (event.altKey) parts.push('Alt');
+        if (event.shiftKey) parts.push('Shift');
+        if (event.metaKey) parts.push('Meta');
+        
+        // Add the main key
+        if (event.key.length === 1) {
+            parts.push(event.key.toUpperCase());
+        } else {
+            parts.push(event.key);
+        }
+        
+        return parts.join('+');
+    }
+
+    // Menu state management
+    enableMenuItem(menuPath, enabled = true) {
+        const item = this.findMenuItem(menuPath);
+        if (item) {
+            if (enabled) {
+                item.classList.remove('disabled');
+            } else {
+                item.classList.add('disabled');
+            }
+        }
+    }
+
+    setMenuItemChecked(menuPath, checked = true) {
+        const item = this.findMenuItem(menuPath);
+        if (item) {
+            if (checked) {
+                item.classList.add('checked');
+                // Add checkmark
+                if (!item.querySelector('.checkmark')) {
+                    const checkmark = document.createElement('span');
+                    checkmark.className = 'checkmark';
+                    checkmark.textContent = '✓';
+                    item.insertBefore(checkmark, item.firstChild);
+                }
+            } else {
+                item.classList.remove('checked');
+                const checkmark = item.querySelector('.checkmark');
+                if (checkmark) {
+                    checkmark.remove();
+                }
+            }
+        }
+    }
+
+    findMenuItem(path) {
+        // Find menu item by path (e.g., "File.Save As...")
+        const parts = path.split('.');
+        let current = this.menuBar;
+        
+        for (const part of parts) {
+            const item = Array.from(current.children).find(child => 
+                child.textContent.includes(part)
+            );
+            if (!item) return null;
+            
+            if (parts.indexOf(part) === parts.length - 1) {
+                return item;
+            }
+            
+            current = item.querySelector('.web-submenu');
+            if (!current) return null;
+        }
+        
+        return null;
+    }
+}
+
+// Global instance
+const menuSystem = new WebMenuSystem();
+
+// Bridge API for compatibility
+export function createMenuBar(template) {
+    return menuSystem.createMenuBar(template);
+}
+
+export function showContextMenu(x, y, items) {
+    return menuSystem.showContextMenu(x, y, items);
+}
+
+export function enableMenuItem(path, enabled) {
+    return menuSystem.enableMenuItem(path, enabled);
+}
+
+export function setMenuItemChecked(path, checked) {
+    return menuSystem.setMenuItemChecked(path, checked);
+}
+
+export { menuSystem, WebMenuSystem };
+```
+
+#### Browser Compatibility & Limitations
+
+**✅ Universal Support:**
+- CSS styling and animations
+- Keyboard event handling
+- DOM manipulation for menu structure
+
+**⚠️ Considerations:**
+- Custom styling doesn't match OS native menus
+- Keyboard navigation requires custom implementation
+- Mobile devices need touch-friendly menu design
+
+**🚫 Limitations:**
+- No integration with OS application menu
+- No support for global menu bar (macOS)
+- TouchBar simulation not possible
+
+---
+
+### 7. Platform Detection & Adaptation Migration
+
+**Complexity:** LOW | **Priority:** LOW | **Effort:** 1 week
+
+#### Current Electron Pattern
+
+```javascript
+// Platform Detection (multiple files)
+const darwin = (process.platform === "darwin");
+const linux = (process.platform === "linux");
+const win32 = (process.platform === "win32");
+
+if (darwin) {
+    // macOS-specific code
+    electron.Menu.setApplicationMenu(menu);
+    // TouchBar support
+    win.setTouchBar(touchBar);
+} else {
+    // Windows/Linux specific code
+    win.setMenuBarVisibility(false);
+}
+
+// Process info
+const arch = process.arch;
+const version = process.version;
+```
+
+#### Web/PWA Pattern
+
+```javascript
+// Web Platform Detection (web-platform-detector.js)
+class WebPlatformDetector {
+    constructor() {
+        this.userAgent = navigator.userAgent.toLowerCase();
+        this.platform = navigator.platform.toLowerCase();
+        this._detectPlatform();
+        this._detectCapabilities();
+    }
+
+    _detectPlatform() {
+        // Operating System Detection
+        if (this.platform.includes('mac') || this.userAgent.includes('mac os')) {
+            this._platform = 'darwin';
+            this._os = 'macOS';
+        } else if (this.platform.includes('win') || this.userAgent.includes('windows')) {
+            this._platform = 'win32';
+            this._os = 'Windows';
+        } else if (this.platform.includes('linux') || this.userAgent.includes('linux')) {
+            this._platform = 'linux';
+            this._os = 'Linux';
+        } else {
+            this._platform = 'unknown';
+            this._os = 'Unknown';
+        }
+
+        // Mobile Detection
+        this._isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        this._isTablet = /iPad|Android(?!.*Mobile)/i.test(navigator.userAgent);
+        this._isPhone = this._isMobile && !this._isTablet;
+
+        // Browser Detection
+        this._detectBrowser();
+    }
+
+    _detectBrowser() {
+        if (this.userAgent.includes('chrome') && !this.userAgent.includes('edge')) {
+            this._browser = 'chrome';
+        } else if (this.userAgent.includes('firefox')) {
+            this._browser = 'firefox';
+        } else if (this.userAgent.includes('safari') && !this.userAgent.includes('chrome')) {
+            this._browser = 'safari';
+        } else if (this.userAgent.includes('edge')) {
+            this._browser = 'edge';
+        } else {
+            this._browser = 'unknown';
+        }
+    }
+
+    _detectCapabilities() {
+        // Touch Support
+        this._hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        // High DPI Support
+        this._devicePixelRatio = window.devicePixelRatio || 1;
+        this._isHighDPI = this._devicePixelRatio > 1;
+
+        // File API Support
+        this._supportsFileAPI = 'File' in window && 'FileReader' in window;
+        this._supportsFileSystemAccess = 'showOpenFilePicker' in window;
+
+        // Storage Support
+        this._supportsLocalStorage = (() => {
+            try {
+                localStorage.setItem('test', 'test');
+                localStorage.removeItem('test');
+                return true;
+            } catch {
+                return false;
+            }
+        })();
+
+        this._supportsIndexedDB = 'indexedDB' in window;
+
+        // Web API Support
+        this._supportsPWA = 'serviceWorker' in navigator;
+        this._supportsWebGL = (() => {
+            try {
+                const canvas = document.createElement('canvas');
+                return !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+            } catch {
+                return false;
+            }
+        })();
+
+        // Keyboard Support
+        this._hasPhysicalKeyboard = !this._isMobile || this._isTablet;
+    }
+
+    // Public API
+    get platform() {
+        return this._platform;
+    }
+
+    get os() {
+        return this._os;
+    }
+
+    get browser() {
+        return this._browser;
+    }
+
+    get isMobile() {
+        return this._isMobile;
+    }
+
+    get isTablet() {
+        return this._isTablet;
+    }
+
+    get isPhone() {
+        return this._isPhone;
+    }
+
+    get isDesktop() {
+        return !this._isMobile;
+    }
+
+    get hasTouch() {
+        return this._hasTouch;
+    }
+
+    get isHighDPI() {
+        return this._isHighDPI;
+    }
+
+    get devicePixelRatio() {
+        return this._devicePixelRatio;
+    }
+
+    get supportsFileAPI() {
+        return this._supportsFileAPI;
+    }
+
+    get supportsFileSystemAccess() {
+        return this._supportsFileSystemAccess;
+    }
+
+    get supportsLocalStorage() {
+        return this._supportsLocalStorage;
+    }
+
+    get supportsIndexedDB() {
+        return this._supportsIndexedDB;
+    }
+
+    get supportsPWA() {
+        return this._supportsPWA;
+    }
+
+    get supportsWebGL() {
+        return this._supportsWebGL;
+    }
+
+    get hasPhysicalKeyboard() {
+        return this._hasPhysicalKeyboard;
+    }
+
+    // Convenience Methods
+    isDarwin() {
+        return this._platform === 'darwin';
+    }
+
+    isWindows() {
+        return this._platform === 'win32';
+    }
+
+    isLinux() {
+        return this._platform === 'linux';
+    }
+
+    isChrome() {
+        return this._browser === 'chrome';
+    }
+
+    isFirefox() {
+        return this._browser === 'firefox';
+    }
+
+    isSafari() {
+        return this._browser === 'safari';
+    }
+
+    isEdge() {
+        return this._browser === 'edge';
+    }
+
+    // Feature Detection
+    supports(feature) {
+        const features = {
+            'file-system-access': this._supportsFileSystemAccess,
+            'local-storage': this._supportsLocalStorage,
+            'indexed-db': this._supportsIndexedDB,
+            'service-worker': this._supportsPWA,
+            'webgl': this._supportsWebGL,
+            'touch': this._hasTouch,
+            'high-dpi': this._isHighDPI
+        };
+
+        return features[feature] || false;
+    }
+
+    // Get appropriate shortcuts for platform
+    getShortcutModifier() {
+        return this.isDarwin() ? 'Meta' : 'Control';
+    }
+
+    getShortcutSymbol() {
+        return this.isDarwin() ? '⌘' : 'Ctrl';
+    }
+
+    // Get platform-appropriate styles
+    getPlatformStyles() {
+        const styles = {
+            fontFamily: this.isDarwin() ? 
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' :
+                '"Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+            scrollbarWidth: this.isDarwin() ? 'auto' : 'thin',
+            borderRadius: this.isDarwin() ? '6px' : '4px'
+        };
+
+        if (this.isMobile) {
+            styles.fontSize = '16px'; // Prevent zoom on mobile
+            styles.touchAction = 'manipulation';
+        }
+
+        return styles;
+    }
+
+    // Responsive breakpoints
+    getScreenSize() {
+        const width = window.innerWidth;
+        
+        if (width < 768) return 'mobile';
+        if (width < 1024) return 'tablet';
+        if (width < 1440) return 'desktop';
+        return 'large';
+    }
+
+    // Adapt UI for platform
+    adaptUI(element) {
+        const styles = this.getPlatformStyles();
+        
+        Object.assign(element.style, styles);
+        
+        // Add platform classes
+        element.classList.add(`platform-${this._platform}`);
+        element.classList.add(`browser-${this._browser}`);
+        element.classList.add(`screen-${this.getScreenSize()}`);
+        
+        if (this._isMobile) element.classList.add('mobile');
+        if (this._hasTouch) element.classList.add('touch');
+        if (this._isHighDPI) element.classList.add('high-dpi');
+    }
+
+    // Performance optimization hints
+    getPerformanceHints() {
+        return {
+            preferCanvas: this._supportsWebGL && this.isDesktop,
+            useVirtualization: this._isMobile || this.getScreenSize() === 'mobile',
+            enableTransitions: !this._isMobile || this._devicePixelRatio === 1,
+            chunkOperations: this._isMobile,
+            maxConcurrentOperations: this._isMobile ? 2 : 4
+        };
+    }
+}
+
+// Global instance
+const platformDetector = new WebPlatformDetector();
+
+// Bridge API for compatibility
+export const darwin = platformDetector.isDarwin();
+export const linux = platformDetector.isLinux();
+export const win32 = platformDetector.isWindows();
+
+export function getPlatform() {
+    return platformDetector.platform;
+}
+
+export function getOS() {
+    return platformDetector.os;
+}
+
+export function isMobile() {
+    return platformDetector.isMobile;
+}
+
+export function hasTouch() {
+    return platformDetector.hasTouch;
+}
+
+export function supports(feature) {
+    return platformDetector.supports(feature);
+}
+
+export { platformDetector, WebPlatformDetector };
+```
+
+#### Browser Compatibility & Limitations
+
+**✅ Universal Support:**
+- User agent and platform detection
+- Screen size and device pixel ratio
+- Basic capability detection
+
+**⚠️ Considerations:**
+- User agent spoofing can affect detection
+- Capabilities may change with browser updates
+- Mobile device detection isn't 100% accurate
+
+**🚫 Limitations:**
+- No access to detailed system information
+- Cannot detect specific hardware features
+- Limited compared to native platform APIs
+
+---
+
+### 8. Progressive Web App (PWA) Implementation Migration
+
+**Complexity:** MEDIUM | **Priority:** ENHANCEMENT | **Effort:** 2 weeks
+
+#### Current Electron Pattern
+
+```javascript
+// Electron provides native app experience by default
+// No specific PWA implementation needed
+
+// Native features available:
+// - Desktop installation
+// - System integration
+// - Offline capability
+// - File associations
+// - Background processes
+```
+
+#### Web/PWA Pattern
+
+```javascript
+// Service Worker (sw.js)
+const CACHE_NAME = 'moebiusxbin-v1.0.0';
+const STATIC_ASSETS = [
+    '/',
+    '/app/css/moebius.css',
+    '/app/js/moebius.js',
+    '/app/fonts/IBM_VGA_8x16.f',
+    '/app/fonts/IBM_VGA_8x14.f',
+    '/app/fonts/IBM_VGA_8x8.f',
+    '/app/img/icon-192.png',
+    '/app/img/icon-512.png'
+];
+
+const DYNAMIC_CACHE = 'moebiusxbin-dynamic-v1';
+const FONT_CACHE = 'moebiusxbin-fonts-v1';
+
+// Install event - cache static assets
+self.addEventListener('install', (event) => {
+    console.log('Service Worker installing...');
+    
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => {
+                console.log('Caching static assets');
+                return cache.addAll(STATIC_ASSETS);
+            })
+            .then(() => {
+                console.log('Static assets cached successfully');
+                return self.skipWaiting();
+            })
+            .catch(error => {
+                console.error('Failed to cache static assets:', error);
+            })
+    );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
+    console.log('Service Worker activating...');
+    
+    event.waitUntil(
+        caches.keys()
+            .then(cacheNames => {
+                return Promise.all(
+                    cacheNames.map(cacheName => {
+                        if (cacheName !== CACHE_NAME && 
+                            cacheName !== DYNAMIC_CACHE && 
+                            cacheName !== FONT_CACHE) {
+                            console.log('Deleting old cache:', cacheName);
+                            return caches.delete(cacheName);
+                        }
+                    })
+                );
+            })
+            .then(() => {
+                console.log('Service Worker activated');
+                return self.clients.claim();
+            })
+    );
+});
+
+// Fetch event - serve from cache with network fallback
+self.addEventListener('fetch', (event) => {
+    const { request } = event;
+    const url = new URL(request.url);
+    
+    // Handle different types of requests
+    if (request.destination === 'font') {
+        event.respondWith(handleFontRequest(request));
+    } else if (url.pathname.startsWith('/app/')) {
+        event.respondWith(handleStaticAsset(request));
+    } else if (request.destination === 'document') {
+        event.respondWith(handleDocumentRequest(request));
+    } else {
+        event.respondWith(handleGenericRequest(request));
+    }
+});
+
+async function handleFontRequest(request) {
+    const cache = await caches.open(FONT_CACHE);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse) {
+        return cachedResponse;
+    }
+    
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+    } catch (error) {
+        console.error('Font fetch failed:', error);
+        // Return a fallback font if available
+        return cache.match('/app/fonts/IBM_VGA_8x16.f');
+    }
+}
+
+async function handleStaticAsset(request) {
+    const cache = await caches.open(CACHE_NAME);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse) {
+        // Serve from cache, update in background
+        fetchAndUpdateCache(request, cache);
+        return cachedResponse;
+    }
+    
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+    } catch (error) {
+        console.error('Static asset fetch failed:', error);
+        throw error;
+    }
+}
+
+async function handleDocumentRequest(request) {
+    try {
+        const networkResponse = await fetch(request);
+        return networkResponse;
+    } catch (error) {
+        // Serve cached app shell for offline functionality
+        const cache = await caches.open(CACHE_NAME);
+        const fallbackResponse = await cache.match('/');
+        return fallbackResponse || new Response('Offline', { status: 503 });
+    }
+}
+
+async function handleGenericRequest(request) {
+    const cache = await caches.open(DYNAMIC_CACHE);
+    const cachedResponse = await cache.match(request);
+    
+    if (cachedResponse) {
+        return cachedResponse;
+    }
+    
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone());
+        }
+        return networkResponse;
+    } catch (error) {
+        console.error('Generic fetch failed:', error);
+        throw error;
+    }
+}
+
+async function fetchAndUpdateCache(request, cache) {
+    try {
+        const networkResponse = await fetch(request);
+        if (networkResponse.ok) {
+            cache.put(request, networkResponse.clone());
+        }
+    } catch (error) {
+        // Ignore background update failures
+    }
+}
+
+// Background sync for data persistence
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'backup-document') {
+        event.waitUntil(syncDocumentBackup());
+    }
+});
+
+async function syncDocumentBackup() {
+    // Sync document backups when online
+    try {
+        const db = await openIndexedDB();
+        const pendingBackups = await getPendingBackups(db);
+        
+        for (const backup of pendingBackups) {
+            // Attempt to sync with server or cloud storage
+            await syncBackup(backup);
+        }
+    } catch (error) {
+        console.error('Background sync failed:', error);
+    }
+}
+
+// Push notifications for collaboration
+self.addEventListener('push', (event) => {
+    const options = {
+        body: 'New collaboration activity',
+        icon: '/app/img/icon-192.png',
+        badge: '/app/img/badge.png',
+        tag: 'collaboration',
+        actions: [
+            { action: 'view', title: 'View' },
+            { action: 'dismiss', title: 'Dismiss' }
+        ]
+    };
+    
+    event.waitUntil(
+        self.registration.showNotification('MoebiusXBIN', options)
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+    
+    if (event.action === 'view') {
+        event.waitUntil(
+            clients.openWindow('/')
+        );
+    }
+});
+```
+
+```json
+// Web App Manifest (manifest.json)
+{
+    "name": "MoebiusXBIN",
+    "short_name": "Moebius",
+    "description": "ASCII/ANSI Art Editor with custom font and color support",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#292c33",
+    "theme_color": "#292c33",
+    "categories": ["graphics", "productivity", "utilities"],
+    "icons": [
+        {
+            "src": "/app/img/icon-72.png",
+            "sizes": "72x72",
+            "type": "image/png"
+        },
+        {
+            "src": "/app/img/icon-96.png",
+            "sizes": "96x96",
+            "type": "image/png"
+        },
+        {
+            "src": "/app/img/icon-128.png",
+            "sizes": "128x128",
+            "type": "image/png"
+        },
+        {
+            "src": "/app/img/icon-144.png",
+            "sizes": "144x144",
+            "type": "image/png"
+        },
+        {
+            "src": "/app/img/icon-152.png",
+            "sizes": "152x152",
+            "type": "image/png"
+        },
+        {
+            "src": "/app/img/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/app/img/icon-384.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
+            "src": "/app/img/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "file_handlers": [
+        {
+            "action": "/",
+            "accept": {
+                "text/plain": [".ans", ".bin", ".xb", ".diz", ".nfo", ".asc"]
+            }
+        }
+    ],
+    "share_target": {
+        "action": "/share",
+        "method": "POST",
+        "enctype": "multipart/form-data",
+        "params": {
+            "files": [
+                {
+                    "name": "file",
+                    "accept": [".ans", ".bin", ".xb", ".diz", ".nfo", ".asc"]
+                }
+            ]
+        }
+    },
+    "shortcuts": [
+        {
+            "name": "New Document",
+            "short_name": "New",
+            "description": "Create a new ASCII art document",
+            "url": "/?action=new",
+            "icons": [
+                {
+                    "src": "/app/img/shortcut-new.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Open Recent",
+            "short_name": "Recent",
+            "description": "Open a recently edited document",
+            "url": "/?action=recent",
+            "icons": [
+                {
+                    "src": "/app/img/shortcut-recent.png",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ]
+}
+```
+
+```javascript
+// PWA Registration and Management (pwa-manager.js)
+class PWAManager {
+    constructor() {
+        this.swRegistration = null;
+        this.isOnline = navigator.onLine;
+        this.setupOnlineHandlers();
+        this.registerServiceWorker();
+        this.setupInstallPrompt();
+    }
+
+    async registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            try {
+                this.swRegistration = await navigator.serviceWorker.register('/sw.js');
+                console.log('Service Worker registered:', this.swRegistration);
+                
+                // Listen for updates
+                this.swRegistration.addEventListener('updatefound', () => {
+                    this.handleServiceWorkerUpdate();
+                });
+                
+                // Handle controller change
+                navigator.serviceWorker.addEventListener('controllerchange', () => {
+                    window.location.reload();
+                });
+                
+            } catch (error) {
+                console.error('Service Worker registration failed:', error);
+            }
+        }
+    }
+
+    handleServiceWorkerUpdate() {
+        const newWorker = this.swRegistration.installing;
+        
+        newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                // New version available
+                this.showUpdateNotification();
+            }
+        });
+    }
+
+    showUpdateNotification() {
+        const notification = document.createElement('div');
+        notification.className = 'update-notification';
+        notification.innerHTML = `
+            <div class="update-content">
+                <span>A new version is available!</span>
+                <button onclick="window.location.reload()">Update</button>
+                <button onclick="this.parentElement.parentElement.remove()">Later</button>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+    }
+
+    setupInstallPrompt() {
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            this.showInstallButton(deferredPrompt);
+        });
+        
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            this.hideInstallButton();
+        });
+    }
+
+    showInstallButton(deferredPrompt) {
+        const installButton = document.createElement('button');
+        installButton.textContent = 'Install App';
+        installButton.className = 'install-button';
+        installButton.onclick = async () => {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log('Install prompt outcome:', outcome);
+            
+            if (outcome === 'accepted') {
+                this.hideInstallButton();
+            }
+            
+            deferredPrompt = null;
+        };
+        
+        document.body.appendChild(installButton);
+    }
+
+    hideInstallButton() {
+        const installButton = document.querySelector('.install-button');
+        if (installButton) {
+            installButton.remove();
+        }
+    }
+
+    setupOnlineHandlers() {
+        window.addEventListener('online', () => {
+            this.isOnline = true;
+            this.handleOnlineStatus();
+        });
+        
+        window.addEventListener('offline', () => {
+            this.isOnline = false;
+            this.handleOnlineStatus();
+        });
+    }
+
+    handleOnlineStatus() {
+        const statusElement = document.getElementById('online-status');
+        if (statusElement) {
+            statusElement.textContent = this.isOnline ? 'Online' : 'Offline';
+            statusElement.className = this.isOnline ? 'online' : 'offline';
+        }
+        
+        if (this.isOnline) {
+            // Sync pending data
+            this.syncPendingData();
+        }
+    }
+
+    async syncPendingData() {
+        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+            try {
+                await this.swRegistration.sync.register('backup-document');
+            } catch (error) {
+                console.error('Background sync registration failed:', error);
+            }
+        }
+    }
+
+    // File handling for PWA
+    async handleFileOpen(files) {
+        if (!files || files.length === 0) return;
+        
+        for (const file of files) {
+            try {
+                const content = await file.text();
+                // Process the file content
+                this.openDocument(content, file.name);
+            } catch (error) {
+                console.error('Failed to read file:', error);
+            }
+        }
+    }
+
+    openDocument(content, filename) {
+        // Emit event to application
+        window.dispatchEvent(new CustomEvent('moebius:open_document', {
+            detail: { content, filename }
+        }));
+    }
+
+    // Share handling
+    async handleShare(shareData) {
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback to clipboard
+                await navigator.clipboard.writeText(shareData.text || shareData.url);
+                this.showShareFallback();
+            }
+        } catch (error) {
+            console.error('Share failed:', error);
+        }
+    }
+
+    showShareFallback() {
+        const notification = document.createElement('div');
+        notification.textContent = 'Copied to clipboard!';
+        notification.className = 'share-notification';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    // Notification handling
+    async requestNotificationPermission() {
+        if ('Notification' in window) {
+            const permission = await Notification.requestPermission();
+            return permission === 'granted';
+        }
+        return false;
+    }
+
+    async subscribeToPushNotifications() {
+        if (!this.swRegistration) return null;
+        
+        try {
+            const subscription = await this.swRegistration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: this.urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+            });
+            
+            // Send subscription to server
+            await this.sendSubscriptionToServer(subscription);
+            
+            return subscription;
+        } catch (error) {
+            console.error('Failed to subscribe to push notifications:', error);
+            return null;
+        }
+    }
+
+    urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        
+        return outputArray;
+    }
+
+    async sendSubscriptionToServer(subscription) {
+        // Send subscription to your server for push notifications
+        try {
+            await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(subscription)
+            });
+        } catch (error) {
+            console.error('Failed to send subscription to server:', error);
+        }
+    }
+}
+
+// Initialize PWA
+const pwaManager = new PWAManager();
+
+// Handle file launch
+if ('launchQueue' in window) {
+    window.launchQueue.setConsumer(async (launchParams) => {
+        if (launchParams.files && launchParams.files.length) {
+            await pwaManager.handleFileOpen(launchParams.files);
+        }
+    });
+}
+
+export { pwaManager, PWAManager };
+```
+
+#### Browser Compatibility & Limitations
+
+**✅ Universal Support:**
+- Service Worker: Chrome 40+, Firefox 44+, Safari 11.1+
+- Web App Manifest: Chrome 39+, Firefox 53+, Safari 14.1+
+- Basic PWA features supported across modern browsers
+
+**⚠️ Limited Support:**
+- File handling: Chrome 102+, Edge 102+ (experimental)
+- Background sync: Chrome 49+, Edge 79+
+- Push notifications: Chrome 42+, Firefox 44+, Safari 16+
+
+**🚫 Limitations:**
+- iOS Safari has restrictions on PWA features
+- Cannot access all system APIs
+- Limited background processing compared to native apps
+- File associations limited to newer browsers
+
+**Migration Strategy:**
+1. Implement basic service worker for offline functionality
+2. Add web app manifest for installation
+3. Enhance with advanced PWA features gradually
+4. Test thoroughly across target browsers and devices
+
+---
+
+## 📋 MIGRATION SUMMARY & RECOMMENDATIONS
+
+### Implementation Priority Order
+
+1. **Phase 1 (Weeks 1-4): Foundation**
+   - IPC System replacement (critical blocker)
+   - File System Operations (core functionality)
+
+2. **Phase 2 (Weeks 5-8): Architecture**
+   - Multi-Window Management (major UX change)
+   - Native Dialog System (user interaction)
+
+3. **Phase 3 (Weeks 9-12): Integration**
+   - Font Management System (core feature)
+   - Native Menu System (navigation)
+
+4. **Phase 4 (Weeks 13-16): Enhancement**
+   - Platform Detection (optimization)
+   - PWA Implementation (modern features)
+
+### Browser Compatibility Matrix
+
+| Feature | Chrome | Firefox | Safari | Edge | Mobile |
+|---------|--------|---------|--------|------|--------|
+| IPC Replacement | ✅ | ✅ | ✅ | ✅ | ✅ |
+| File System Access | ✅ | ⚠️ | ⚠️ | ✅ | ❌ |
+| Window Management | ✅ | ✅ | ✅ | ✅ | ⚠️ |
+| Dialog System | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Font Management | ✅ | ✅ | ⚠️ | ✅ | ⚠️ |
+| Menu System | ✅ | ✅ | ✅ | ✅ | ⚠️ |
+| Platform Detection | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PWA Features | ✅ | ✅ | ⚠️ | ✅ | ⚠️ |
+
+**Legend:** ✅ Full Support | ⚠️ Partial/Limited | ❌ No Support
+
+### Key Success Factors
+
+1. **Progressive Enhancement**: Build core functionality first, enhance with advanced features
+2. **Graceful Degradation**: Provide fallbacks for unsupported browsers/features
+3. **Performance Focus**: Optimize for mobile and lower-powered devices
+4. **User Testing**: Validate workflows with actual users throughout migration
+5. **Incremental Rollout**: Maintain parallel Electron version during transition
+
+### Risk Mitigation Strategies
+
+- **Browser Compatibility**: Implement comprehensive feature detection and fallbacks
+- **Performance**: Use lazy loading, virtualization, and efficient data structures
+- **User Experience**: Maintain familiar workflows while adapting to web constraints
+- **Data Safety**: Implement robust backup systems and error handling
+- **Security**: Validate all user inputs and implement Content Security Policy
+
+This comprehensive migration guide provides detailed implementation patterns for converting MoebiusXBIN from Electron to a modern web application while maintaining feature parity and ensuring broad browser compatibility.
