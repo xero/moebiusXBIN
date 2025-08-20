@@ -1,0 +1,155 @@
+name: Browser Update Monitor
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  monitor-browser-updates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for Playwright updates
+        id: playwright-check
+        run: |
+          CURRENT_VERSION=$(npm list @playwright/test --depth=0 --json | jq -r '.dependencies["@playwright/test"].version')
+          LATEST_VERSION=$(npm view @playwright/test version)
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "latest=$LATEST_VERSION" >> $GITHUB_OUTPUT
+          if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
+            echo "update_available=true" >> $GITHUB_OUTPUT
+          else
+            echo "update_available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update Playwright if needed
+        if: steps.playwright-check.outputs.update_available == 'true'
+        run: |
+          npm update @playwright/test
+          npx playwright install
+
+      - name: Run compatibility tests
+        run: |
+          npm run test:critical
+
+      - name: Check browser versions
+        id: browser-versions
+        run: |
+          # Get browser versions
+          CHROME_VERSION=$(npx playwright install-deps chromium && chromium --version | cut -d' ' -f2)
+          FIREFOX_VERSION=$(npx playwright install-deps firefox && firefox --version | cut -d' ' -f3)
+          
+          echo "chrome=$CHROME_VERSION" >> $GITHUB_OUTPUT
+          echo "firefox=$FIREFOX_VERSION" >> $GITHUB_OUTPUT
+          
+          # Log versions for visibility
+          echo "Chrome version: $CHROME_VERSION"
+          echo "Firefox version: $FIREFOX_VERSION"
+
+      - name: Create issue for Playwright update
+        if: steps.playwright-check.outputs.update_available == 'true' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const current = '${{ steps.playwright-check.outputs.current }}';
+            const latest = '${{ steps.playwright-check.outputs.latest }}';
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Browser Testing: Playwright update available (${current} → ${latest})`,
+              body: `## Browser Update Alert
+              
+              Playwright has been updated from version **${current}** to **${latest}**.
+              
+              ### Test Results
+              The compatibility tests failed after the update, indicating potential breaking changes.
+              
+              ### Action Required
+              1. Review Playwright changelog for breaking changes
+              2. Update test configurations if needed
+              3. Verify browser compatibility across all projects
+              4. Update browser support matrix if minimum versions changed
+              
+              ### Browser Versions Detected
+              - Chrome: ${{ steps.browser-versions.outputs.chrome }}
+              - Firefox: ${{ steps.browser-versions.outputs.firefox }}
+              
+              ### Files to Review
+              - \`playwright.config.js\` - Browser configuration
+              - \`DOCS/AUTOMATED_BROWSER_TESTING_STRATEGY.md\` - Browser support matrix
+              - Test files for new API usage
+              
+              /cc @maintainers`,
+              labels: ['testing', 'maintenance', 'browser-compatibility']
+            });
+
+      - name: Create pull request for successful update
+        if: steps.playwright-check.outputs.update_available == 'true' && success()
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'Update Playwright to ${{ steps.playwright-check.outputs.latest }}'
+          title: 'Update Playwright to ${{ steps.playwright-check.outputs.latest }}'
+          body: |
+            ## Automated Playwright Update
+            
+            This PR updates Playwright from ${{ steps.playwright-check.outputs.current }} to ${{ steps.playwright-check.outputs.latest }}.
+            
+            ### Compatibility Tests
+            ✅ All critical tests pass with the new version
+            
+            ### Browser Versions
+            - Chrome: ${{ steps.browser-versions.outputs.chrome }}
+            - Firefox: ${{ steps.browser-versions.outputs.firefox }}
+            
+            ### Changes Made
+            - Updated `@playwright/test` to latest version
+            - Installed new browser binaries
+            - Verified compatibility tests pass
+            
+            This update should be safe to merge after code review.
+          branch: automated/playwright-update-${{ steps.playwright-check.outputs.latest }}
+          delete-branch: true
+
+      - name: Post status comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ job.status }}';
+            const current = '${{ steps.playwright-check.outputs.current }}';
+            const latest = '${{ steps.playwright-check.outputs.latest }}';
+            const updateAvailable = '${{ steps.playwright-check.outputs.update_available }}';
+            
+            let message = `## Browser Update Monitor - ${status.toUpperCase()}\n\n`;
+            message += `**Date:** ${new Date().toISOString().split('T')[0]}\n`;
+            message += `**Playwright Version:** ${current}\n`;
+            message += `**Latest Available:** ${latest}\n`;
+            
+            if (updateAvailable === 'true') {
+              if (status === 'success') {
+                message += `\n✅ Playwright updated successfully and tests pass\n`;
+                message += `A pull request has been created for review.`;
+              } else {
+                message += `\n❌ Playwright update available but tests failed\n`;
+                message += `An issue has been created for investigation.`;
+              }
+            } else {
+              message += `\n✅ Playwright is up to date, no action needed`;
+            }
+            
+            console.log(message);

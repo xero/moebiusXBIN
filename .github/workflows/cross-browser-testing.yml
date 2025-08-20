@@ -1,0 +1,211 @@
+# GitHub Actions workflow for cross-browser testing
+name: Cross-Browser Testing
+
+on:
+  push:
+    branches: [main, develop]
+    paths: 
+      - 'app/web/**'
+      - 'playwright.config.js'
+      - '.github/workflows/test.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/web/**'
+      - 'playwright.config.js'
+
+jobs:
+  lint-and-unit:
+    name: Lint and Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Lint code
+        run: npm run lint:web
+      
+      - name: Run unit tests
+        run: npm run test:unit
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+
+  browser-tests:
+    name: Browser Tests
+    runs-on: ${{ matrix.os }}
+    needs: lint-and-unit
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        browser: [chromium, firefox, webkit]
+        exclude:
+          # Safari only runs on macOS
+          - os: ubuntu-latest
+            browser: webkit
+          - os: windows-latest
+            browser: webkit
+          # Reduce matrix size - focus on primary combinations
+          - os: windows-latest
+            browser: firefox
+          - os: macos-latest
+            browser: firefox
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+      
+      - name: Build web application
+        run: npm run build:web
+      
+      - name: Run Playwright tests
+        run: npx playwright test --project=${{ matrix.browser }}
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: playwright-report-${{ matrix.browser }}-${{ matrix.os }}
+          path: playwright-report/
+          retention-days: 30
+
+  mobile-tests:
+    name: Mobile Browser Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-unit
+    strategy:
+      matrix:
+        project: ['Mobile Chrome', 'Mobile Safari', 'Tablet Chrome']
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+      
+      - name: Build web application
+        run: npm run build:web
+      
+      - name: Run mobile tests
+        run: npx playwright test --project="${{ matrix.project }}"
+      
+      - name: Upload mobile test results
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: playwright-mobile-${{ matrix.project }}
+          path: playwright-report/
+
+  performance-tests:
+    name: Performance & Accessibility Tests
+    runs-on: ubuntu-latest
+    needs: browser-tests
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      
+      - name: Build web application
+        run: npm run build:web
+      
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.12.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+      
+      - name: Run accessibility tests
+        run: npx playwright test --grep="accessibility"
+
+  visual-regression:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    needs: browser-tests
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      
+      - name: Build web application
+        run: npm run build:web
+      
+      - name: Run visual regression tests
+        run: npx playwright test --grep="visual"
+      
+      - name: Upload visual diff artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: visual-regression-diffs
+          path: test-results/
+
+  # Notification step
+  notify-results:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [browser-tests, mobile-tests, performance-tests, visual-regression]
+    if: always()
+    
+    steps:
+      - name: Notify Slack on failure
+        if: ${{ needs.browser-tests.result == 'failure' || needs.mobile-tests.result == 'failure' }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: 'Cross-browser tests failed! Check the workflow for details.'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
